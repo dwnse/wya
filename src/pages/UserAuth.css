@@ -15,7 +15,7 @@
     position: fixed;
     inset: 0;
     background: var(--color-bg);
-    background-image: url("/images/bg1.jpg");
+    background-image: url("/wya/images/bg1.jpg");
     background-size: cover;
     background-position: center;
     z-index: 0;
