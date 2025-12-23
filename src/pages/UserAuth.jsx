@@ -74,7 +74,7 @@ function UserAuth() {
 
             <div className="auth-container">
                 <Link to="/" className="auth-logo">
-                    <img src="/images/logo123.jpg" alt="EXO" />
+                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" />
                     <span>EXO</span>
                 </Link>
 

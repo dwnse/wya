@@ -13,7 +13,7 @@ function Home() {
 
                 <div className="hero-logo">
                     <img
-                        src="/images/logo123.jpg"
+                        src={`${import.meta.env.BASE_URL}images/logo123.jpg`}
                         alt="EXO Logo"
                     />
                 </div>

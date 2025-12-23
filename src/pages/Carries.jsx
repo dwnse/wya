@@ -104,7 +104,7 @@ function Carries() {
 
                             <div className="carry-avatar-wrapper">
                                 <img
-                                    src={carry.miembros?.avatar_url || '/images/logo123.jpg'}
+                                    src={carry.miembros?.avatar_url || `${import.meta.env.BASE_URL}images/logo123.jpg`}
                                     alt={carry.miembros?.nombre_mostrar}
                                     className="carry-avatar"
                                 />

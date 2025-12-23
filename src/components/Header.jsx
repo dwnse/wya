@@ -56,7 +56,7 @@ function Header({ variant = 'default' }) {
 
                 <nav className={`sidebar ${menuOpen ? 'open' : ''}`}>
                     <div className="sidebar-header">
-                        <img src="/images/logo123.jpg" alt="EXO" className="sidebar-logo" />
+                        <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" className="sidebar-logo" />
                         <div className="sidebar-brand-text">
                             <span className="sidebar-brand">EXO</span>
                         </div>
@@ -158,7 +158,7 @@ function Header({ variant = 'default' }) {
     return (
         <header className="header">
             <Link to="/" className="header-brand-link">
-                <img src="/images/logo123.jpg" alt="EXO" className="header-logo" />
+                <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" className="header-logo" />
                 <span className="header-brand">EXO</span>
             </Link>
 
@@ -187,7 +187,7 @@ function Header({ variant = 'default' }) {
             {menuOpen && <div className="mobile-overlay" onClick={closeMenu} />}
             <nav className={`mobile-nav ${menuOpen ? 'open' : ''}`}>
                 <div className="mobile-nav-header">
-                    <img src="/images/logo123.jpg" alt="EXO" className="mobile-nav-logo" />
+                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" className="mobile-nav-logo" />
                     <span>EXO</span>
                     <button className="mobile-nav-close" onClick={closeMenu}>
                         <Icon name="close" size={20} />
