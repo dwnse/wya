@@ -59,9 +59,9 @@ function AdminLayout() {
             <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="admin-sidebar-header">
                     <div className="sidebar-brand">
-                        <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" className="brand-logo" />
+                        <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Lou" className="brand-logo" />
                         <div className="brand-text">
-                            <span>EXO</span>
+                            <span>Lou</span>
                             <small>Admin Panel</small>
                         </div>
                     </div>
@@ -125,7 +125,7 @@ function AdminLayout() {
                     >
                         <Icon name="menu" size={22} />
                     </button>
-                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" className="mobile-logo" />
+                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Lou" className="mobile-logo" />
                     <span className="mobile-title">Admin</span>
                 </header>
 

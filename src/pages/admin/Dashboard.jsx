@@ -59,7 +59,7 @@ function Dashboard() {
         <div className="dashboard">
             <div className="dashboard-header">
                 <h1>Dashboard</h1>
-                <p>Bienvenido al panel de administración de EXO</p>
+                <p>Bienvenido al panel de administración de Lou</p>
             </div>
 
             <div className="stats-grid">

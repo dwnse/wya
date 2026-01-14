@@ -38,7 +38,7 @@ function Carries() {
                         <Icon name="star" size={36} />
                         Top Clan
                     </h1>
-                    <p className="page-subtitle">Los mejores jugadores de EXO</p>
+                    <p className="page-subtitle">Los mejores jugadores de Lou</p>
                 </div>
 
                 {/* Filtros */}

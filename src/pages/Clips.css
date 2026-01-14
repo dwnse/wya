@@ -220,6 +220,201 @@
     margin-bottom: 12px;
 }
 
+/* Tabs */
+.header-actions {
+    margin-top: 16px;
+}
+
+.tabs-container {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 16px;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+    color: var(--color-text);
+}
+
+.tab-btn.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+/* My Clips Status */
+.clip-status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 2;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.clip-status-badge[data-status="pendiente"] {
+    color: #fbbf24;
+    border-color: #fbbf24;
+}
+
+.clip-status-badge[data-status="aprobado"] {
+    color: #10b981;
+    border-color: #10b981;
+}
+
+.clip-status-badge[data-status="rechazado"] {
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
+.clip-date {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-top: 4px;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content.upload-modal {
+    width: 100%;
+    max-width: 500px;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-glow);
+    animation: scaleIn 0.2s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    color: var(--color-text);
+}
+
+.btn-close {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
+}
+
+.btn-close:hover {
+    color: var(--color-text);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+.upload-success {
+    text-align: center;
+    padding: 40px 0;
+}
+
+.upload-success .text-green {
+    color: #10b981;
+    margin-bottom: 16px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 @media (max-width: 768px) {
     .clips-content {
         padding: 20px;
@@ -231,6 +426,6 @@
     }
 
     .clips-section {
-        padding: 20px;
+        padding: 15px;
     }
 }

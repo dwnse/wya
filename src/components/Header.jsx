@@ -56,9 +56,9 @@ function Header({ variant = 'default' }) {
 
                 <nav className={`sidebar ${menuOpen ? 'open' : ''}`}>
                     <div className="sidebar-header">
-                        <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" className="sidebar-logo" />
+                        <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Lou" className="sidebar-logo" />
                         <div className="sidebar-brand-text">
-                            <span className="sidebar-brand">EXO</span>
+                            <span className="sidebar-brand">LOU</span>
                         </div>
                         <button className="sidebar-close" onClick={closeMenu}>
                             <Icon name="close" size={20} />
@@ -129,7 +129,7 @@ function Header({ variant = 'default' }) {
 
                     <div className="sidebar-footer">
                         <a
-                            href="https://discord.gg/exo"
+                            href="https://discord.gg/uNcEMnEg"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="discord-btn"
@@ -158,8 +158,8 @@ function Header({ variant = 'default' }) {
     return (
         <header className="header">
             <Link to="/" className="header-brand-link">
-                <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" className="header-logo" />
-                <span className="header-brand">EXO</span>
+                <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Lou" className="header-logo" />
+                <span className="header-brand">LOU</span>
             </Link>
 
             <nav className="header-nav">
@@ -187,8 +187,8 @@ function Header({ variant = 'default' }) {
             {menuOpen && <div className="mobile-overlay" onClick={closeMenu} />}
             <nav className={`mobile-nav ${menuOpen ? 'open' : ''}`}>
                 <div className="mobile-nav-header">
-                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="EXO" className="mobile-nav-logo" />
-                    <span>EXO</span>
+                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Lou" className="mobile-nav-logo" />
+                    <span>LOU</span>
                     <button className="mobile-nav-close" onClick={closeMenu}>
                         <Icon name="close" size={20} />
                     </button>

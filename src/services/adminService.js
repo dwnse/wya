@@ -18,7 +18,8 @@ export async function login(email, password) {
         .select('*')
         .eq('auth_user_id', data.user.id)
         .eq('estado', 'activo')
-        .single()
+        .eq('estado', 'activo')
+        .maybeSingle()
 
     if (adminError || !admin) {
         await supabase.auth.signOut()
@@ -49,7 +50,8 @@ export async function getCurrentUser() {
         .select('*')
         .eq('auth_user_id', user.id)
         .eq('estado', 'activo')
-        .single()
+        .eq('estado', 'activo')
+        .maybeSingle()
 
     return admin ? { user, admin } : null
 }

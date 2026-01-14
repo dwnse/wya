@@ -43,14 +43,14 @@ export async function obtenerMiembroPorId(id) {
 // ============================================
 export async function obtenerClips() {
   const data = await fetchSupabase('clips',
-    'select=*,miembros(id,nombre_mostrar,avatar_url),categorias_clips(nombre,slug)&estado=eq.activo&order=creado_en.desc'
+    'select=*,miembros(id,nombre_mostrar,avatar_url),categorias_clips(nombre,slug)&estado=in.(aprobado,activo)&order=creado_en.desc'
   )
   return data
 }
 
 export async function obtenerClipsPorMiembro(miembroId) {
   const data = await fetchSupabase('clips',
-    `select=*,categorias_clips(nombre,slug)&miembro_id=eq.${miembroId}&estado=eq.activo&order=creado_en.desc`
+    `select=*,categorias_clips(nombre,slug)&miembro_id=eq.${miembroId}&estado=in.(aprobado,activo)&order=creado_en.desc`
   )
   return data
 }
@@ -60,6 +60,33 @@ export async function obtenerCategoriasClips() {
     'select=*&estado=eq.activo&order=orden_mostrar'
   )
   return data
+}
+
+export async function crearClip(clip) {
+  // clip debe incluir: titulo, youtube_url, descripcion (opcional), usuario_id
+  // Los clips creados por usuario entran como 'pendiente' por defecto en DB
+  return await fetchSupabaseAuthenticated('POST', 'clips', clip, 'select=*,miembros(nombre_mostrar)')
+}
+
+export async function obtenerMisClips(usuarioId) {
+  // Obtiene clips del usuario sin importar estado
+  return await fetchSupabaseAuthenticated('GET', 'clips', null,
+    `select=*,categorias_clips(nombre,slug)&usuario_id=eq.${usuarioId}&order=creado_en.desc`
+  )
+}
+
+export async function obtenerClipsPendientes() {
+  // Solo para admins
+  return await fetchSupabaseAuthenticated('GET', 'clips', null,
+    `select=*,usuarios(id,nombre,avatar_url),miembros(nombre_mostrar)&estado=eq.pendiente&order=creado_en.desc`
+  )
+}
+
+export async function actualizarEstadoClip(clipId, nuevoEstado) {
+  if (!['aprobado', 'rechazado', 'pendiente', 'eliminado'].includes(nuevoEstado)) {
+    throw new Error('Estado inválido')
+  }
+  return await fetchSupabaseAuthenticated('PATCH', 'clips', { estado: nuevoEstado }, `id=eq.${clipId}`)
 }
 
 // ============================================

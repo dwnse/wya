@@ -1,0 +1,154 @@
+.admin-clips-page {
+    padding: 20px 0;
+}
+
+.empty-admin-state {
+    text-align: center;
+    padding: 60px;
+    background: var(--color-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.empty-admin-state .text-green {
+    color: #10b981;
+    margin-bottom: 16px;
+}
+
+.admin-clips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+.admin-clip-card {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.clip-header {
+    padding: 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-info .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.user-info .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info .username {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.user-info .date {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.clip-preview {
+    position: relative;
+    padding-top: 56.25%;
+    background: #000;
+}
+
+.clip-preview iframe,
+.clip-preview video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.clip-details {
+    padding: 16px;
+    flex: 1;
+}
+
+.clip-details h4 {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.clip-details p {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin-bottom: 8px;
+}
+
+.clip-url-raw {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: monospace;
+}
+
+.clip-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin-top: auto;
+}
+
+.btn-reject,
+.btn-approve {
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.btn-reject {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.btn-reject:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-approve {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.btn-approve:hover {
+    background: #10b981;
+    color: white;
+}

@@ -7,7 +7,8 @@ import {
     obtenerCategoriasGaleria,
     obtenerCarries,
     obtenerVetados,
-    obtenerTiposVetado
+    obtenerTiposVetado,
+    obtenerMisClips
 } from '../services/supabaseService'
 
 // Hook genérico para fetching
@@ -79,6 +80,10 @@ export function useVetados() {
 
 export function useTiposVetado() {
     return useSupabaseQuery(obtenerTiposVetado)
+}
+
+export function useMisClips(usuarioId) {
+    return useSupabaseQuery(() => usuarioId ? obtenerMisClips(usuarioId) : Promise.resolve([]), [usuarioId])
 }
 
 // Hook para clips agrupados por miembro

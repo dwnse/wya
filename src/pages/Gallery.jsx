@@ -91,7 +91,7 @@ function Gallery() {
                         <Icon name="gallery" size={36} />
                         Galería
                     </h1>
-                    <p className="page-subtitle">Momentos inolvidables del clan EXO</p>
+                    <p className="page-subtitle">Momentos inolvidables del clan Lou</p>
                 </div>
 
                 {/* Filtros */}

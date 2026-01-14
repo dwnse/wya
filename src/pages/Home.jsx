@@ -14,16 +14,16 @@ function Home() {
                 <div className="hero-logo">
                     <img
                         src={`${import.meta.env.BASE_URL}images/logo123.jpg`}
-                        alt="EXO Logo"
+                        alt="Lou Logo"
                     />
                 </div>
 
-                <h1 className="hero-title">EXO</h1>
+                <h1 className="hero-title">LOU</h1>
 
                 <p className="hero-subtitle">ÚNETE AL CLAN</p>
 
                 <a
-                    href="https://discord.gg/wyaa"
+                    href="https://discord.gg/uNcEMnEg"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hero-button"

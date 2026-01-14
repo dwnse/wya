@@ -5,45 +5,87 @@ import Loading from '../components/Loading.jsx'
 import ErrorMessage from '../components/ErrorMessage.jsx'
 import { Icon } from '../components/Icons.jsx'
 import { InteraccionesPanel } from '../components/Interacciones.jsx'
-import { useClipsAgrupados } from '../hooks/useSupabase.js'
+import { useClipsAgrupados, useMisClips } from '../hooks/useSupabase.js'
+import { useUserAuth } from '../context/UserAuthContext'
+import { crearClip } from '../services/supabaseService'
 import './Clips.css'
 
-// Convierte URLs de YouTube a formato embed
-function getYouTubeEmbedUrl(url) {
+// Detecta y transforma URLs de video (YouTube, Medal, Discord, mp4)
+function getVideoData(url) {
     if (!url) return null
 
-    // Si ya es embed URL, devolverla
-    if (url.includes('youtube.com/embed/')) {
-        return url
+    // 1. YouTube
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        let videoId = null
+        if (url.includes('youtube.com/embed/')) return { type: 'iframe', src: url }
+        if (url.includes('youtube.com/watch')) videoId = new URLSearchParams(new URL(url).search).get('v')
+        else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0]
+        else if (url.includes('youtube.com/shorts/')) videoId = url.split('shorts/')[1]?.split('?')[0]
+
+        if (videoId) return { type: 'iframe', src: `https://www.youtube.com/embed/${videoId}` }
     }
 
-    let videoId = null
+    // 2. Medal.tv
+    // Formato típico: https://medal.tv/games/cod-mw2/clips/1A2B3C4D/vp5X6Y7Z
+    // Embed: https://medal.tv/clip/1A2B3C4D/vp5X6Y7Z?autoplay=0&muted=0&loop=0
+    if (url.includes('medal.tv')) {
+        // Intento simple de convertir URL de clip a embed
+        // Extraemos IDs clave o usamos la ruta /clip/ si es posible
+        // Pero Medal ofrece un iframe específico. Una forma robusta es reemplazar '/clips/' por '/clip/' y limpiar query params
 
-    // Formatos soportados:
-    // https://www.youtube.com/watch?v=VIDEO_ID
-    // https://youtu.be/VIDEO_ID
-    // https://www.youtube.com/shorts/VIDEO_ID
-
-    if (url.includes('youtube.com/watch')) {
-        const urlParams = new URLSearchParams(new URL(url).search)
-        videoId = urlParams.get('v')
-    } else if (url.includes('youtu.be/')) {
-        videoId = url.split('youtu.be/')[1]?.split('?')[0]
-    } else if (url.includes('youtube.com/shorts/')) {
-        videoId = url.split('shorts/')[1]?.split('?')[0]
+        let src = url
+        if (url.includes('/clips/')) {
+            src = url.replace('/clips/', '/clip/')
+        }
+        // Asegurar parámetros básicos
+        const symbol = src.includes('?') ? '&' : '?'
+        return { type: 'iframe', src: `${src}${symbol}autoplay=0&muted=0&loop=0&controls=1` }
     }
 
-    if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`
+    // 3. Archivos directos (Discord, mp4, etc.)
+    if (url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('cdn.discordapp.com')) {
+        return { type: 'video', src: url }
     }
 
-    return url
+    return null
 }
 
 function Clips() {
+    const { user } = useUserAuth()
     const { data: clipsAgrupados, loading, error, refetch } = useClipsAgrupados()
+    const { data: misClips, loading: loadingMisClips, refetch: refetchMisClips } = useMisClips(user?.id)
+
+    const [activeTab, setActiveTab] = useState('todos') // 'todos' | 'mis-clips'
     const [busqueda, setBusqueda] = useState('')
     const [filtroMiembro, setFiltroMiembro] = useState('todos')
+
+    // Modal Upload State
+    const [showUploadModal, setShowUploadModal] = useState(false)
+    const [uploadForm, setUploadForm] = useState({ youtube_url: '', titulo: '', descripcion: '' })
+    const [uploadStatus, setUploadStatus] = useState('idle') // idle, loading, success, error
+
+    const handleUpload = async (e) => {
+        e.preventDefault()
+        if (!user || !uploadForm.youtube_url || !uploadForm.titulo) return
+
+        try {
+            setUploadStatus('loading')
+            await crearClip({
+                ...uploadForm,
+                usuario_id: user.id
+            })
+            setUploadStatus('success')
+            setUploadForm({ youtube_url: '', titulo: '', descripcion: '' })
+            setTimeout(() => {
+                setShowUploadModal(false)
+                setUploadStatus('idle')
+                refetchMisClips()
+            }, 2000)
+        } catch (err) {
+            console.error(err)
+            setUploadStatus('error')
+        }
+    }
 
     // Lista de miembros para el filtro
     const miembros = useMemo(() => {
@@ -85,8 +127,37 @@ function Clips() {
                         <Icon name="video" size={36} />
                         Clips
                     </h1>
-                    <p className="page-subtitle">Los mejores momentos del clan EXO</p>
+                    <p className="page-subtitle">Los mejores momentos del clan Lou</p>
+
+                    {user && (
+                        <div className="header-actions">
+                            <button
+                                className="btn-primary"
+                                onClick={() => setShowUploadModal(true)}
+                            >
+                                <Icon name="plus" size={18} />
+                                Subir Clip
+                            </button>
+                        </div>
+                    )}
                 </div>
+
+                {user && (
+                    <div className="tabs-container">
+                        <button
+                            className={`tab-btn ${activeTab === 'todos' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('todos')}
+                        >
+                            Todos los Clips
+                        </button>
+                        <button
+                            className={`tab-btn ${activeTab === 'mis-clips' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('mis-clips')}
+                        >
+                            Mis Clips
+                        </button>
+                    </div>
+                )}
 
                 {/* Filtros */}
                 <div className="filters-bar">
@@ -136,7 +207,7 @@ function Clips() {
                     </div>
                 )}
 
-                {!loading && !error && clipsFiltrados?.map((grupo, index) => (
+                {!loading && !error && activeTab === 'todos' && clipsFiltrados?.map((grupo, index) => (
                     <section
                         key={grupo.miembro?.id || index}
                         className="clips-section animate-fade-in"
@@ -156,21 +227,33 @@ function Clips() {
 
                         <div className="clips-grid">
                             {grupo.clips.map(clip => {
-                                const embedUrl = getYouTubeEmbedUrl(clip.youtube_url)
+                                const videoData = getVideoData(clip.youtube_url)
                                 return (
                                     <div key={clip.id} className="clip-card">
                                         <div className="clip-video">
-                                            {embedUrl ? (
+                                            {videoData?.type === 'iframe' && (
                                                 <iframe
-                                                    src={embedUrl}
+                                                    src={videoData.src}
                                                     title={clip.titulo}
                                                     allowFullScreen
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                 ></iframe>
-                                            ) : (
+                                            )}
+                                            {videoData?.type === 'video' && (
+                                                <video
+                                                    src={videoData.src}
+                                                    controls
+                                                    preload="metadata"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                ></video>
+                                            )}
+                                            {!videoData && (
                                                 <div className="clip-placeholder">
                                                     <Icon name="video" size={48} />
-                                                    <p>Video no disponible</p>
+                                                    <p>Formato no compatible</p>
+                                                    <a href={clip.youtube_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                                                        Ver enlace original
+                                                    </a>
                                                 </div>
                                             )}
                                         </div>
@@ -196,10 +279,117 @@ function Clips() {
                         </div>
                     </section>
                 ))}
+
+                {/* Vista Mis Clips */}
+                {activeTab === 'mis-clips' && (
+                    <div className="my-clips-view animate-fade-in">
+                        {loadingMisClips && <Loading text="Cargando tus clips..." />}
+                        {!loadingMisClips && misClips?.length === 0 && (
+                            <div className="empty-state">
+                                <Icon name="video" size={48} />
+                                <p>No has subido ningún clip aún</p>
+                                <button className="btn-primary" onClick={() => setShowUploadModal(true)}>
+                                    Subir mi primer clip
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="clips-grid">
+                            {!loadingMisClips && misClips?.map(clip => {
+                                const videoData = getVideoData(clip.youtube_url)
+                                return (
+                                    <div key={clip.id} className="clip-card">
+                                        <div className="clip-status-badge" data-status={clip.estado}>
+                                            {clip.estado === 'pendiente' ? '⏳ Pendiente' :
+                                                clip.estado === 'aprobado' ? '✅ Aprobado' :
+                                                    clip.estado === 'rechazado' ? '❌ Rechazado' : clip.estado}
+                                        </div>
+                                        <div className="clip-video">
+                                            {videoData?.type === 'iframe' && (
+                                                <iframe
+                                                    src={videoData.src}
+                                                    title={clip.titulo}
+                                                    allowFullScreen
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                ></iframe>
+                                            )}
+                                            {videoData?.type === 'video' && (
+                                                <video src={videoData.src} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }}></video>
+                                            )}
+                                        </div>
+                                        <div className="clip-info">
+                                            <h3>{clip.titulo}</h3>
+                                            <p className="clip-date">Subido el {new Date(clip.creado_en).toLocaleDateString()}</p>
+                                            {clip.estado === 'rechazado' && <p className="text-red text-sm">Este clip no fue aprobado.</p>}
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal de Subida */}
+                {showUploadModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content upload-modal">
+                            <div className="modal-header">
+                                <h2>Subir Nuevo Clip</h2>
+                                <button className="btn-close" onClick={() => setShowUploadModal(false)}>
+                                    <Icon name="close" size={20} />
+                                </button>
+                            </div>
+
+                            {uploadStatus === 'success' ? (
+                                <div className="upload-success">
+                                    <Icon name="check" size={48} className="text-green" />
+                                    <p>¡Clip enviado correctamente!</p>
+                                    <p className="text-sm">Tu clip está en revisión y aparecerá pronto.</p>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleUpload}>
+                                    <div className="form-group">
+                                        <label>Título del Clip</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={uploadForm.titulo}
+                                            onChange={e => setUploadForm({ ...uploadForm, titulo: e.target.value })}
+                                            placeholder="Ej: Jugada épica en..."
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Enlace del Video</label>
+                                        <input
+                                            type="url"
+                                            required
+                                            value={uploadForm.youtube_url}
+                                            onChange={e => setUploadForm({ ...uploadForm, youtube_url: e.target.value })}
+                                            placeholder="YouTube, Medal, Discord, etc."
+                                        />
+                                        <small>Soporta: YouTube, Medal.tv, archivos directos (.mp4)</small>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Descripción (Opcional)</label>
+                                        <textarea
+                                            value={uploadForm.descripcion}
+                                            onChange={e => setUploadForm({ ...uploadForm, descripcion: e.target.value })}
+                                            placeholder="Cuenta un poco sobre qué pasó..."
+                                        />
+                                    </div>
+                                    {uploadStatus === 'error' && <p className="error-text">Ocurrió un error al subir el clip.</p>}
+                                    <button type="submit" className="btn-primary" disabled={uploadStatus === 'loading'}>
+                                        {uploadStatus === 'loading' ? 'Enviando...' : 'Enviar Clip'}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+                    </div>
+                )}
             </main>
 
             <Footer />
-        </div>
+        </div >
     )
 }
 

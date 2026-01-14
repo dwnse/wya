@@ -1,358 +1,156 @@
-import { useState, useEffect, useMemo } from 'react'
-import { Icon } from '../../components/Icons'
+import { useState, useEffect } from 'react'
+import { obtenerClipsPendientes, actualizarEstadoClip } from '../../services/supabaseService'
 import Loading from '../../components/Loading'
-import {
-    obtenerTodosClips,
-    crearClip,
-    actualizarClip,
-    eliminarClip
-} from '../../services/adminService'
-import { obtenerMiembros, obtenerCategoriasClips } from '../../services/supabaseService'
-import './AdminCrud.css'
+import ErrorMessage from '../../components/ErrorMessage'
+import { Icon } from '../../components/Icons'
+import './AdminClips.css'
+
+// Helper para video data (reutilizado de Clips.jsx)
+function getVideoData(url) {
+    if (!url) return null
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        let videoId = null
+        if (url.includes('youtube.com/embed/')) return { type: 'iframe', src: url }
+        if (url.includes('youtube.com/watch')) videoId = new URLSearchParams(new URL(url).search).get('v')
+        else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0]
+        else if (url.includes('youtube.com/shorts/')) videoId = url.split('shorts/')[1]?.split('?')[0]
+        if (videoId) return { type: 'iframe', src: `https://www.youtube.com/embed/${videoId}` }
+    }
+    if (url.includes('medal.tv')) {
+        let src = url
+        if (url.includes('/clips/')) src = url.replace('/clips/', '/clip/')
+        const symbol = src.includes('?') ? '&' : '?'
+        return { type: 'iframe', src: `${src}${symbol}autoplay=0&muted=0&loop=0&controls=1` }
+    }
+    if (url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('cdn.discordapp.com')) {
+        return { type: 'video', src: url }
+    }
+    return null
+}
 
 function AdminClips() {
     const [clips, setClips] = useState([])
-    const [miembros, setMiembros] = useState([])
-    const [categorias, setCategorias] = useState([])
     const [loading, setLoading] = useState(true)
-    const [showModal, setShowModal] = useState(false)
-    const [editando, setEditando] = useState(null)
-
-    // Filtros
-    const [busqueda, setBusqueda] = useState('')
-    const [filtroMiembro, setFiltroMiembro] = useState('todos')
-    const [filtroEstado, setFiltroEstado] = useState('todos')
-
-    const [form, setForm] = useState({
-        titulo: '',
-        youtube_url: '',
-        miembro_id: '',
-        categoria_id: '',
-        descripcion: '',
-        destacado: false,
-        estado: 'activo'
-    })
+    const [error, setError] = useState(null)
+    const [actionLoading, setActionLoading] = useState(null) // ID del clip siendo procesado
 
     useEffect(() => {
-        loadData()
+        cargarClips()
     }, [])
 
-    async function loadData() {
+    async function cargarClips() {
         try {
-            const [clipsData, miembrosData, categoriasData] = await Promise.all([
-                obtenerTodosClips(),
-                obtenerMiembros(),
-                obtenerCategoriasClips()
-            ])
-            setClips(clipsData || [])
-            setMiembros(miembrosData || [])
-            setCategorias(categoriasData || [])
-        } catch (error) {
-            console.error('Error:', error)
+            setLoading(true)
+            console.log('Cargando clips pendientes...')
+            const data = await obtenerClipsPendientes()
+            console.log('Clips pendientes recibidos:', data)
+            setClips(data || [])
+        } catch (err) {
+            console.error('Error cargando clips:', err)
+            setError(err.message)
         } finally {
             setLoading(false)
         }
     }
 
-    // Filtrar
-    const clipsFiltrados = useMemo(() => {
-        return clips.filter(c => {
-            const matchBusqueda = !busqueda || c.titulo?.toLowerCase().includes(busqueda.toLowerCase())
-            const matchMiembro = filtroMiembro === 'todos' || c.miembro_id === filtroMiembro
-            const matchEstado = filtroEstado === 'todos' || c.estado === filtroEstado
-            return matchBusqueda && matchMiembro && matchEstado
-        })
-    }, [clips, busqueda, filtroMiembro, filtroEstado])
-
-    // Extraer thumbnail de YouTube
-    function getYoutubeThumbnail(url) {
-        const match = url?.match(/embed\/([a-zA-Z0-9_-]+)/)
-        if (match) {
-            return `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg`
-        }
-        return null
-    }
-
-    function openModal(clip = null) {
-        if (clip) {
-            setEditando(clip)
-            setForm({
-                titulo: clip.titulo,
-                youtube_url: clip.youtube_url,
-                miembro_id: clip.miembro_id || '',
-                categoria_id: clip.categoria_id || '',
-                descripcion: clip.descripcion || '',
-                destacado: clip.destacado,
-                estado: clip.estado
-            })
-        } else {
-            setEditando(null)
-            setForm({
-                titulo: '',
-                youtube_url: '',
-                miembro_id: '',
-                categoria_id: '',
-                descripcion: '',
-                destacado: false,
-                estado: 'activo'
-            })
-        }
-        setShowModal(true)
-    }
-
-    async function handleSubmit(e) {
-        e.preventDefault()
+    async function handleEstado(id, nuevoEstado) {
         try {
-            const datos = { ...form }
-            if (!datos.miembro_id) delete datos.miembro_id
-            if (!datos.categoria_id) delete datos.categoria_id
-
-            if (editando) {
-                await actualizarClip(editando.id, datos)
-            } else {
-                await crearClip(datos)
-            }
-            setShowModal(false)
-            loadData()
-        } catch (error) {
-            alert('Error: ' + error.message)
+            setActionLoading(id)
+            await actualizarEstadoClip(id, nuevoEstado)
+            // Remover de la lista
+            setClips(prev => prev.filter(c => c.id !== id))
+        } catch (err) {
+            console.error(err)
+            alert('Error al actualizar estado: ' + err.message)
+        } finally {
+            setActionLoading(null)
         }
     }
 
-    async function handleDelete(id) {
-        if (confirm('¿Eliminar este clip?')) {
-            try {
-                await eliminarClip(id)
-                loadData()
-            } catch (error) {
-                alert('Error: ' + error.message)
-            }
-        }
-    }
-
-    if (loading) return <Loading text="Cargando clips..." />
+    if (loading) return <Loading text="Cargando clips pendientes..." />
+    if (error) return <ErrorMessage message={error} onRetry={cargarClips} />
 
     return (
-        <div className="admin-crud">
-            <div className="crud-header">
-                <div>
-                    <h1>Clips</h1>
-                    <p>{clipsFiltrados.length} de {clips.length} clips</p>
+        <div className="admin-clips-page">
+            <header className="page-header">
+                <h1>Gestión de Clips</h1>
+                <p>Revisa y aprueba los clips subidos por la comunidad</p>
+            </header>
+
+            {clips.length === 0 ? (
+                <div className="empty-admin-state">
+                    <Icon name="check" size={48} className="text-green" />
+                    <h3>¡Todo al día!</h3>
+                    <p>No hay clips pendientes de revisión.</p>
                 </div>
-                <button className="btn-primary" onClick={() => openModal()}>
-                    <Icon name="video" size={18} />
-                    Nuevo Clip
-                </button>
-            </div>
+            ) : (
+                <div className="admin-clips-grid">
+                    {clips.map(clip => {
+                        const videoData = getVideoData(clip.youtube_url)
+                        const usuario = clip.usuarios || {}
 
-            {/* Filtros */}
-            <div className="crud-filters">
-                <div className="filter-search">
-                    <Icon name="video" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Buscar clip..."
-                        value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
-                    />
-                </div>
-                <select
-                    className="filter-select"
-                    value={filtroMiembro}
-                    onChange={(e) => setFiltroMiembro(e.target.value)}
-                >
-                    <option value="todos">Todos los miembros</option>
-                    {miembros.map(m => (
-                        <option key={m.id} value={m.id}>{m.nombre_mostrar}</option>
-                    ))}
-                </select>
-                <select
-                    className="filter-select"
-                    value={filtroEstado}
-                    onChange={(e) => setFiltroEstado(e.target.value)}
-                >
-                    <option value="todos">Todos</option>
-                    <option value="activo">Activos</option>
-                    <option value="inactivo">Inactivos</option>
-                </select>
-            </div>
-
-            {/* Grid */}
-            <div className="crud-cards">
-                {clipsFiltrados.map(clip => (
-                    <div key={clip.id} className="crud-card">
-                        <div className="card-image" style={{ position: 'relative' }}>
-                            {getYoutubeThumbnail(clip.youtube_url) ? (
-                                <img src={getYoutubeThumbnail(clip.youtube_url)} alt={clip.titulo} />
-                            ) : (
-                                <Icon name="video" size={48} />
-                            )}
-                            {clip.destacado && (
-                                <span style={{
-                                    position: 'absolute',
-                                    top: 8,
-                                    right: 8,
-                                    background: 'var(--color-accent-gold)',
-                                    borderRadius: '50%',
-                                    width: 28,
-                                    height: 28,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#1a1a1a'
-                                }}>
-                                    <Icon name="star" size={14} />
-                                </span>
-                            )}
-                        </div>
-                        <div className="card-body">
-                            <h3 className="card-title">{clip.titulo}</h3>
-                            <div className="card-meta">
-                                <span className={`status-badge status-${clip.estado}`}>
-                                    {clip.estado}
-                                </span>
-                                {clip.miembros && (
-                                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)' }}>
-                                        {clip.miembros.nombre_mostrar}
-                                    </span>
-                                )}
-                            </div>
-                            <div className="card-actions">
-                                <button className="btn-icon" onClick={() => openModal(clip)}>
-                                    <Icon name="file" size={18} />
-                                </button>
-                                <button className="btn-icon btn-danger" onClick={() => handleDelete(clip.id)}>
-                                    <Icon name="ban" size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {clipsFiltrados.length === 0 && (
-                <div className="empty-state">
-                    <Icon name="video" size={48} />
-                    <p>No hay clips</p>
-                </div>
-            )}
-
-            {/* Modal */}
-            {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2>{editando ? 'Editar Clip' : 'Nuevo Clip'}</h2>
-                            <button onClick={() => setShowModal(false)}>
-                                <Icon name="close" size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="modal-form">
-                            <div className="form-group">
-                                <label>Título</label>
-                                <input
-                                    type="text"
-                                    value={form.titulo}
-                                    onChange={e => setForm({ ...form, titulo: e.target.value })}
-                                    placeholder="Título del clip"
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>URL de YouTube (embed)</label>
-                                <input
-                                    type="url"
-                                    value={form.youtube_url}
-                                    onChange={e => setForm({ ...form, youtube_url: e.target.value })}
-                                    placeholder="https://www.youtube.com/embed/VIDEO_ID"
-                                    required
-                                />
-                                <small style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-xs)' }}>
-                                    Usa el formato embed: youtube.com/embed/VIDEO_ID
-                                </small>
-                            </div>
-
-                            {form.youtube_url && getYoutubeThumbnail(form.youtube_url) && (
-                                <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                                    <img
-                                        src={getYoutubeThumbnail(form.youtube_url)}
-                                        alt="Preview"
-                                        style={{ width: '100%', height: 'auto' }}
-                                    />
+                        return (
+                            <div key={clip.id} className="admin-clip-card">
+                                <div className="clip-header">
+                                    <div className="user-info">
+                                        <div className="avatar">
+                                            {usuario.avatar_url ? (
+                                                <img src={usuario.avatar_url} alt={usuario.nombre} />
+                                            ) : (
+                                                <span>{usuario.nombre?.charAt(0)}</span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <span className="username">{usuario.nombre}</span>
+                                            <span className="date">{new Date(clip.creado_en).toLocaleString()}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
 
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Miembro</label>
-                                    <select
-                                        value={form.miembro_id}
-                                        onChange={e => setForm({ ...form, miembro_id: e.target.value })}
+                                <div className="clip-preview">
+                                    {videoData?.type === 'iframe' && (
+                                        <iframe src={videoData.src} title="Preview" allowFullScreen></iframe>
+                                    )}
+                                    {videoData?.type === 'video' && (
+                                        <video src={videoData.src} controls></video>
+                                    )}
+                                    {!videoData && (
+                                        <div className="no-preview">
+                                            <p>Video no previsualizable</p>
+                                            <a href={clip.youtube_url} target="_blank">Ver Enlace</a>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="clip-details">
+                                    <h4>{clip.titulo}</h4>
+                                    {clip.descripcion && <p>{clip.descripcion}</p>}
+                                    <div className="clip-url-raw">
+                                        <small>{clip.youtube_url}</small>
+                                    </div>
+                                </div>
+
+                                <div className="clip-actions">
+                                    <button
+                                        className="btn-reject"
+                                        onClick={() => handleEstado(clip.id, 'rechazado')}
+                                        disabled={actionLoading === clip.id}
                                     >
-                                        <option value="">Sin asignar</option>
-                                        {miembros.map(m => (
-                                            <option key={m.id} value={m.id}>{m.nombre_mostrar}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label>Categoría</label>
-                                    <select
-                                        value={form.categoria_id}
-                                        onChange={e => setForm({ ...form, categoria_id: e.target.value })}
+                                        <Icon name="close" size={18} />
+                                        Rechazar
+                                    </button>
+                                    <button
+                                        className="btn-approve"
+                                        onClick={() => handleEstado(clip.id, 'aprobado')}
+                                        disabled={actionLoading === clip.id}
                                     >
-                                        <option value="">Sin categoría</option>
-                                        {categorias.map(c => (
-                                            <option key={c.id} value={c.id}>{c.nombre}</option>
-                                        ))}
-                                    </select>
+                                        <Icon name="check" size={18} />
+                                        Aprobar
+                                    </button>
                                 </div>
                             </div>
-
-                            <div className="form-group">
-                                <label>Descripción</label>
-                                <textarea
-                                    value={form.descripcion}
-                                    onChange={e => setForm({ ...form, descripcion: e.target.value })}
-                                    placeholder="Descripción del clip..."
-                                    rows={2}
-                                />
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label className="checkbox-label">
-                                        <input
-                                            type="checkbox"
-                                            checked={form.destacado}
-                                            onChange={e => setForm({ ...form, destacado: e.target.checked })}
-                                        />
-                                        Destacado
-                                    </label>
-                                </div>
-                                <div className="form-group">
-                                    <label>Estado</label>
-                                    <select
-                                        value={form.estado}
-                                        onChange={e => setForm({ ...form, estado: e.target.value })}
-                                    >
-                                        <option value="activo">Activo</option>
-                                        <option value="inactivo">Inactivo</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="modal-actions">
-                                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
-                                    Cancelar
-                                </button>
-                                <button type="submit" className="btn-primary">
-                                    {editando ? 'Guardar' : 'Crear Clip'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                        )
+                    })}
                 </div>
             )}
         </div>
