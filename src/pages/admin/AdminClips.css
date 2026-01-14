@@ -2,6 +2,57 @@
     padding: 20px 0;
 }
 
+.page-header {
+    margin-bottom: 24px;
+}
+
+/* --- Filtros --- */
+.admin-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-btn:hover {
+    background: var(--color-card-hover);
+    color: var(--color-text);
+}
+
+.filter-btn.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.badge-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.filter-btn.active .badge-count {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+/* --- Estados --- */
 .empty-admin-state {
     text-align: center;
     padding: 60px;
@@ -28,11 +79,45 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    position: relative;
+    transition: transform 0.2s;
 }
 
+.admin-clip-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-primary-dark);
+}
+
+/* Badges de estado en tarjeta */
 .clip-header {
     padding: 12px;
     border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.status-pendiente {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.status-aprobado {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.status-rechazado {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
 }
 
 .user-info {
@@ -111,17 +196,23 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
 }
 
 .clip-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(1px, 1fr));
+    /* Auto fit columns */
     gap: 1px;
     margin-top: auto;
+    background: var(--color-border);
+    /* Separador entre botones */
 }
 
 .btn-reject,
-.btn-approve {
+.btn-approve,
+.btn-pending {
     border: none;
     padding: 12px;
     cursor: pointer;
@@ -150,5 +241,15 @@
 
 .btn-approve:hover {
     background: #10b981;
+    color: white;
+}
+
+.btn-pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.btn-pending:hover {
+    background: #f59e0b;
     color: white;
 }

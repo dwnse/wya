@@ -82,6 +82,13 @@ export async function obtenerClipsPendientes() {
   )
 }
 
+export async function obtenerTodosClipsAdmin() {
+  // Para admins: obtener todos sin filtro de estado inicial
+  return await fetchSupabaseAuthenticated('GET', 'clips', null,
+    `select=*,usuarios(id,nombre,avatar_url),miembros(nombre_mostrar)&order=creado_en.desc`
+  )
+}
+
 export async function actualizarEstadoClip(clipId, nuevoEstado) {
   if (!['aprobado', 'rechazado', 'pendiente', 'eliminado'].includes(nuevoEstado)) {
     throw new Error('Estado inválido')

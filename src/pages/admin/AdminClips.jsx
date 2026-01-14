@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { obtenerClipsPendientes, actualizarEstadoClip } from '../../services/supabaseService'
+import { useState, useEffect, useMemo } from 'react'
+import { obtenerTodosClipsAdmin, actualizarEstadoClip } from '../../services/supabaseService'
 import Loading from '../../components/Loading'
 import ErrorMessage from '../../components/ErrorMessage'
 import { Icon } from '../../components/Icons'
@@ -29,10 +29,11 @@ function getVideoData(url) {
 }
 
 function AdminClips() {
-    const [clips, setClips] = useState([])
+    const [allClips, setAllClips] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [actionLoading, setActionLoading] = useState(null) // ID del clip siendo procesado
+    const [actionLoading, setActionLoading] = useState(null)
+    const [filterStatus, setFilterStatus] = useState('pendiente') // 'pendiente' | 'aprobado' | 'rechazado' | 'todos'
 
     useEffect(() => {
         cargarClips()
@@ -41,10 +42,10 @@ function AdminClips() {
     async function cargarClips() {
         try {
             setLoading(true)
-            console.log('Cargando clips pendientes...')
-            const data = await obtenerClipsPendientes()
-            console.log('Clips pendientes recibidos:', data)
-            setClips(data || [])
+            console.log('Cargando todos los clips...')
+            const data = await obtenerTodosClipsAdmin()
+            console.log('Clips recibidos:', data)
+            setAllClips(data || [])
         } catch (err) {
             console.error('Error cargando clips:', err)
             setError(err.message)
@@ -57,8 +58,10 @@ function AdminClips() {
         try {
             setActionLoading(id)
             await actualizarEstadoClip(id, nuevoEstado)
-            // Remover de la lista
-            setClips(prev => prev.filter(c => c.id !== id))
+            // Actualizar localmente
+            setAllClips(prev => prev.map(c =>
+                c.id === id ? { ...c, estado: nuevoEstado } : c
+            ))
         } catch (err) {
             console.error(err)
             alert('Error al actualizar estado: ' + err.message)
@@ -67,7 +70,12 @@ function AdminClips() {
         }
     }
 
-    if (loading) return <Loading text="Cargando clips pendientes..." />
+    const filteredClips = useMemo(() => {
+        if (filterStatus === 'todos') return allClips;
+        return allClips.filter(c => c.estado === filterStatus);
+    }, [allClips, filterStatus]);
+
+    if (loading) return <Loading text="Cargando clips..." />
     if (error) return <ErrorMessage message={error} onRetry={cargarClips} />
 
     return (
@@ -77,20 +85,48 @@ function AdminClips() {
                 <p>Revisa y aprueba los clips subidos por la comunidad</p>
             </header>
 
-            {clips.length === 0 ? (
+            <div className="admin-filters">
+                <button
+                    className={`filter-btn ${filterStatus === 'pendiente' ? 'active' : ''}`}
+                    onClick={() => setFilterStatus('pendiente')}
+                >
+                    Pendientes
+                    <span className="badge-count">{allClips.filter(c => c.estado === 'pendiente').length}</span>
+                </button>
+                <button
+                    className={`filter-btn ${filterStatus === 'aprobado' ? 'active' : ''}`}
+                    onClick={() => setFilterStatus('aprobado')}
+                >
+                    Aprobados
+                </button>
+                <button
+                    className={`filter-btn ${filterStatus === 'rechazado' ? 'active' : ''}`}
+                    onClick={() => setFilterStatus('rechazado')}
+                >
+                    Rechazados
+                </button>
+                <button
+                    className={`filter-btn ${filterStatus === 'todos' ? 'active' : ''}`}
+                    onClick={() => setFilterStatus('todos')}
+                >
+                    Todos
+                </button>
+            </div>
+
+            {filteredClips.length === 0 ? (
                 <div className="empty-admin-state">
-                    <Icon name="check" size={48} className="text-green" />
-                    <h3>¡Todo al día!</h3>
-                    <p>No hay clips pendientes de revisión.</p>
+                    <Icon name="video" size={48} />
+                    <h3>No hay clips en esta categoría</h3>
+                    <p>Cambia el filtro para ver otros clips.</p>
                 </div>
             ) : (
                 <div className="admin-clips-grid">
-                    {clips.map(clip => {
+                    {filteredClips.map(clip => {
                         const videoData = getVideoData(clip.youtube_url)
                         const usuario = clip.usuarios || {}
 
                         return (
-                            <div key={clip.id} className="admin-clip-card">
+                            <div key={clip.id} className="admin-clip-card" data-status={clip.estado}>
                                 <div className="clip-header">
                                     <div className="user-info">
                                         <div className="avatar">
@@ -105,6 +141,9 @@ function AdminClips() {
                                             <span className="date">{new Date(clip.creado_en).toLocaleString()}</span>
                                         </div>
                                     </div>
+                                    <div className={`status-badge status-${clip.estado}`}>
+                                        {clip.estado}
+                                    </div>
                                 </div>
 
                                 <div className="clip-preview">
@@ -117,7 +156,7 @@ function AdminClips() {
                                     {!videoData && (
                                         <div className="no-preview">
                                             <p>Video no previsualizable</p>
-                                            <a href={clip.youtube_url} target="_blank">Ver Enlace</a>
+                                            <a href={clip.youtube_url} target="_blank" rel="noopener noreferrer">Ver Enlace</a>
                                         </div>
                                     )}
                                 </div>
@@ -131,22 +170,36 @@ function AdminClips() {
                                 </div>
 
                                 <div className="clip-actions">
-                                    <button
-                                        className="btn-reject"
-                                        onClick={() => handleEstado(clip.id, 'rechazado')}
-                                        disabled={actionLoading === clip.id}
-                                    >
-                                        <Icon name="close" size={18} />
-                                        Rechazar
-                                    </button>
-                                    <button
-                                        className="btn-approve"
-                                        onClick={() => handleEstado(clip.id, 'aprobado')}
-                                        disabled={actionLoading === clip.id}
-                                    >
-                                        <Icon name="check" size={18} />
-                                        Aprobar
-                                    </button>
+                                    {clip.estado !== 'rechazado' && (
+                                        <button
+                                            className="btn-reject"
+                                            onClick={() => handleEstado(clip.id, 'rechazado')}
+                                            disabled={actionLoading === clip.id}
+                                        >
+                                            <Icon name="close" size={18} />
+                                            Rechazar
+                                        </button>
+                                    )}
+                                    {clip.estado !== 'aprobado' && (
+                                        <button
+                                            className="btn-approve"
+                                            onClick={() => handleEstado(clip.id, 'aprobado')}
+                                            disabled={actionLoading === clip.id}
+                                        >
+                                            <Icon name="check" size={18} />
+                                            Aprobar
+                                        </button>
+                                    )}
+                                    {clip.estado !== 'pendiente' && (
+                                        <button
+                                            className="btn-pending"
+                                            onClick={() => handleEstado(clip.id, 'pendiente')}
+                                            disabled={actionLoading === clip.id}
+                                        >
+                                            <Icon name="clock" size={18} />
+                                            Pendiente
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         )
