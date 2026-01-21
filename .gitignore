@@ -122,6 +122,7 @@ dist
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+*.sql
 
 # macOS
 .DS_Store
