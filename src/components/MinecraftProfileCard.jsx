@@ -137,7 +137,7 @@ function MinecraftProfileCard({ username }) {
                 <div className="minecraft-profile-main">
                     <div className="minecraft-skin-frame"><canvas ref={canvasRef} aria-label={`Skin 3D de ${profile?.name || 'Steve'}`} /></div>
                     <div className="minecraft-profile-data">
-                        <div><span>Estado</span><strong className={profile?.found ? 'minecraft-online' : 'minecraft-missing'}>{profile?.found ? 'Perfil Premium encontrado' : profile?.code === 'NOT_FOUND' ? 'Usuario no encontrado' : 'No se pudo verificar el perfil'}</strong></div>
+                        <div><span>Estado</span><strong className={profile?.found ? 'minecraft-online' : 'minecraft-missing'}>{profile?.found ? 'Premium on' : profile?.code === 'NOT_FOUND' ? 'Premium off' : 'No se pudo verificar el perfil'}</strong></div>
                         {profile?.found && <>
                             <div><span>Nombre actual</span><strong>{profile.name}</strong></div>
                             <div><span>UUID</span><strong className="minecraft-uuid">{profile.uuid}</strong></div>
