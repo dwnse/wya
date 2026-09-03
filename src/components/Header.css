@@ -154,6 +154,8 @@
 
 @media (max-width: 760px) {
     .site-header {
+        position: sticky;
+        top: 0;
         height: 60px;
         padding: 0 16px;
     }
@@ -173,6 +175,7 @@
         right: 10px;
         bottom: 10px;
         left: 10px;
+        z-index: 1001;
         height: 64px;
         display: grid;
         grid-template-columns: repeat(5, 1fr);

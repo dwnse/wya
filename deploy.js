@@ -6,6 +6,7 @@ console.log('🚀 Iniciando despliegue manual...');
 try {
     console.log('📦 Construyendo proyecto...');
     execSync('npm run build', { stdio: 'inherit' });
+    const repositoryUrl = execSync('git remote get-url origin', { encoding: 'utf8' }).trim();
     process.chdir('dist');
     console.log('Git init...');
     if (fs.existsSync('.git')) {
@@ -13,11 +14,12 @@ try {
     }
 
     execSync('git init', { stdio: 'inherit' });
+    execSync(`git remote add origin ${repositoryUrl}`, { stdio: 'inherit' });
     execSync('git checkout -b deployment', { stdio: 'inherit' });
     execSync('git add -A', { stdio: 'inherit' });
     execSync('git commit -m "deploy"', { stdio: 'inherit' });
     console.log('📤 Subiendo a GitHub...');
-    execSync('git push -f https://github.com/koouhz/wya.git deployment', { stdio: 'inherit' });
+    execSync('git push -f origin deployment', { stdio: 'inherit' });
 
     console.log('✅ Despliegue completado con éxito!');
 } catch (e) {

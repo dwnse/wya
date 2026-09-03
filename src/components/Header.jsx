@@ -20,7 +20,8 @@ function Header() {
         : location.pathname.startsWith(path)
 
     return (
-        <header className="site-header">
+        <>
+            <header className="site-header">
             <Link to="/" className="site-brand" aria-label="Ryo, inicio">
                 <span className="site-brand-mark"><Icon name="skull" size={22} /></span>
                 <span className="site-brand-name">RYO</span>
@@ -64,7 +65,9 @@ function Header() {
                 )}
             </div>
 
-            <nav className="mobile-nav" aria-label="Navegación móvil">
+            </header>
+
+        <nav className="mobile-nav" aria-label="Navegación móvil">
                 {navLinks.slice(0, 4).map(link => (
                     <Link
                         key={link.path}
@@ -82,7 +85,7 @@ function Header() {
                     <span>Perfil</span>
                 </Link>
             </nav>
-        </header>
+        </>
     )
 }
 

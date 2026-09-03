@@ -311,7 +311,7 @@
 @keyframes pulse-line { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 0.75; transform: scale(1.035); } }
 
 @media (max-width: 820px) {
-    .home-main { width: min(100% - 32px, 620px); padding-top: 86px; padding-bottom: 100px; }
+    .home-main { width: min(calc(100% - 32px), 620px); padding-top: 32px; padding-bottom: 120px; }
     .hero-stage { min-height: auto; display: flex; flex-direction: column; gap: 12px; }
     .hero-copy { align-self: flex-start; }
     .hero-copy h1 { font-size: clamp(4rem, 19vw, 6rem); }
@@ -319,19 +319,21 @@
     .skull-orbit { width: min(100%, 520px); margin-top: -4px; }
     .discord-cta { position: relative; left: auto; bottom: auto; align-self: flex-start; margin-top: -18px; }
     .node-detail { position: relative; right: auto; bottom: auto; align-self: center; }
+    .node-bottom { bottom: calc(16% - 40px); }
+    .orbit-hint { bottom: 31%; }
     .clan-snapshot { grid-template-columns: 1fr; gap: 18px; margin-top: 26px; }
     .featured-player { padding-top: 16px; padding-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.12); border-left: 0; }
 }
 
 @media (max-width: 460px) {
     .hero-copy h1 { font-size: 4rem; }
-    .skull-orbit { width: 112%; margin-left: -6%; }
-    .discovery-node { min-width: 104px; gap: 6px; }
+    .skull-orbit { width: min(100%, 300px); margin-top: -66px; margin-left: 0; }
+    .discovery-node { min-width: 0; gap: 6px; }
     .node-icon { width: 32px; height: 32px; }
     .node-label { font-size: 0.62rem; }
     .node-top { top: 6%; }
-    .node-right { right: -1%; }
-    .node-left { left: -1%; }
+    .node-right { right: 0; }
+    .node-left { left: 0; }
     .snapshot-stats { gap: 12px; }
     .snapshot-stat strong { font-size: 1.5rem; }
 }

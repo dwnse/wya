@@ -75,7 +75,7 @@ function Home() {
                         })()}
                     </div>
 
-                    <a className="discord-cta" href="https://discord.gg/uNcEMnEg" target="_blank" rel="noopener noreferrer">
+                    <a className="discord-cta" href="https://discord.gg/JGUMP3QFa" target="_blank" rel="noopener noreferrer">
                         <Icon name="discord" size={19} />
                         <span>Entrar al Discord</span>
                         <Icon name="externalLink" size={15} />
