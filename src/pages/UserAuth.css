@@ -1,7 +1,3 @@
-/* ============================================
-   USER AUTH - Login/Register Page
-   ============================================ */
-
 .user-auth-page {
     min-height: 100vh;
     display: flex;
@@ -9,6 +5,7 @@
     justify-content: center;
     position: relative;
     padding: 40px 20px;
+    background-color: #0b0d0e;
 }
 
 .auth-background {
@@ -24,10 +21,7 @@
 .auth-gradient {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg,
-            rgba(0, 0, 0, 0.9) 0%,
-            rgba(20, 0, 0, 0.85) 50%,
-            rgba(0, 0, 0, 0.9) 100%);
+    background: rgba(0, 0, 0, 0.7);
 }
 
 .auth-container {
@@ -56,10 +50,9 @@
 }
 
 .auth-logo span {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--color-primary);
-    letter-spacing: 4px;
+    font: 700 2rem var(--font-display);
+    color: #f7f3ec;
+    letter-spacing: .12em;
 }
 
 .auth-card {
@@ -147,6 +140,26 @@
     border-radius: var(--radius-md);
     color: var(--color-primary);
     font-size: var(--font-size-sm);
+}
+
+.auth-resend {
+    align-self: flex-start;
+    margin-top: -8px;
+    padding: 0;
+    color: var(--color-primary-light);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.auth-resend:hover:not(:disabled) {
+    color: var(--color-text);
+}
+
+.auth-resend:disabled {
+    color: var(--color-text-muted);
+    cursor: wait;
 }
 
 .auth-success {

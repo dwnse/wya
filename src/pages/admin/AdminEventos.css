@@ -1,0 +1,15 @@
+.admin-eventos { max-width: 1100px; }
+.events-admin-list { display: grid; gap: 10px; }
+.event-admin-row { display: grid; grid-template-columns: 100px 1fr auto; align-items: center; gap: 20px; padding: 18px; border: 1px solid var(--color-border); background: rgba(17,17,17,.82); }
+.event-admin-row:hover { border-color: var(--color-border-hover); }
+.event-date { display: flex; flex-direction: column; gap: 4px; color: var(--color-primary-light); font-family: var(--font-display); }
+.event-date strong { font-size: 1.1rem; }
+.event-date span { color: var(--color-text-muted); font: .75rem var(--font-family); }
+.event-admin-info h2 { margin: 6px 0 3px; font: 600 1.1rem var(--font-display); }
+.event-admin-info p { color: var(--color-text-muted); font-size: .78rem; }
+.event-status { color: var(--color-primary-light); font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.event-status.cancelado { color: var(--color-text-muted); }
+.event-status.publicado { color: #65c18c; }
+.event-admin-actions { display: flex; gap: 6px; }
+.form-error { padding: 10px; color: #f28b7d; background: rgba(240,90,71,.1); font-size: .78rem; }
+@media (max-width: 620px) { .event-admin-row { grid-template-columns: 1fr auto; gap: 12px; } .event-date { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--color-border); } .event-admin-actions { grid-column: 2; grid-row: 2; } }

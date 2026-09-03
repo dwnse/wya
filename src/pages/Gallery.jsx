@@ -13,16 +13,12 @@ function Gallery() {
     const [busqueda, setBusqueda] = useState('')
     const [filtroCategoria, setFiltroCategoria] = useState('todos')
     const [lightbox, setLightbox] = useState({ open: false, image: null })
-
-    // Lista de categorías
     const categorias = useMemo(() => {
         if (!galeriaAgrupada) return []
         return galeriaAgrupada
             .filter(g => g.categoria)
             .map(g => ({ slug: g.categoria.slug, nombre: g.categoria.nombre }))
     }, [galeriaAgrupada])
-
-    // Filtrar
     const galeriaFiltrada = useMemo(() => {
         if (!galeriaAgrupada) return []
 
@@ -43,8 +39,6 @@ function Gallery() {
     }, [galeriaAgrupada, busqueda, filtroCategoria])
 
     const totalImagenes = galeriaFiltrada.reduce((acc, g) => acc + g.imagenes.length, 0)
-
-    // Todas las imágenes filtradas para navegación del lightbox
     const todasLasImagenes = useMemo(() => {
         return galeriaFiltrada.flatMap(g => g.imagenes)
     }, [galeriaFiltrada])
@@ -72,8 +66,6 @@ function Gallery() {
             setLightbox({ open: true, image: todasLasImagenes[currentIndex - 1] })
         }
     }
-
-    // Keyboard navigation
     const handleKeyDown = (e) => {
         if (!lightbox.open) return
         if (e.key === 'Escape') closeLightbox()
@@ -91,10 +83,10 @@ function Gallery() {
                         <Icon name="gallery" size={36} />
                         Galería
                     </h1>
-                    <p className="page-subtitle">Momentos inolvidables del clan Lou</p>
+                    <p className="page-subtitle">Momentos inolvidables del clan Ryo</p>
                 </div>
 
-                {/* Filtros */}
+                {}
                 <div className="filters-bar">
                     <div className="filter-search">
                         <Icon name="gallery" size={18} />
@@ -186,7 +178,7 @@ function Gallery() {
                 ))}
             </main>
 
-            {/* Lightbox */}
+            {}
             {lightbox.open && lightbox.image && (
                 <div className="lightbox" onClick={closeLightbox}>
                     <button className="lightbox-close" onClick={closeLightbox}>

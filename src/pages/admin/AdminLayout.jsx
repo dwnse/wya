@@ -9,13 +9,9 @@ function AdminLayout() {
     const location = useLocation()
     const navigate = useNavigate()
     const [sidebarOpen, setSidebarOpen] = useState(false)
-
-    // Cerrar sidebar al cambiar de ruta en móvil
     useEffect(() => {
         setSidebarOpen(false)
     }, [location.pathname])
-
-    // Cerrar sidebar con Escape
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') setSidebarOpen(false)
@@ -39,29 +35,28 @@ function AdminLayout() {
     const menuItems = [
         { path: '/admin', icon: 'home', label: 'Dashboard' },
         { path: '/admin/miembros', icon: 'user', label: 'Miembros' },
+        { path: '/admin/puntos', icon: 'target', label: 'Puntos' },
+        { path: '/admin/eventos', icon: 'calendar', label: 'Eventos' },
         { path: '/admin/clips', icon: 'video', label: 'Clips' },
-        { path: '/admin/galeria', icon: 'gallery', label: 'Galería' },
         { path: '/admin/carries', icon: 'star', label: 'Top Clan' },
-        { path: '/admin/vetados', icon: 'ban', label: 'Vetados' },
         { path: '/admin/usuarios', icon: 'user', label: 'Usuarios' },
-        { path: '/admin/config', icon: 'settings', label: 'Configuración' },
     ]
 
     return (
         <div className="admin-layout">
-            {/* Overlay */}
+            {}
             <div
                 className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
                 onClick={() => setSidebarOpen(false)}
             />
 
-            {/* Sidebar */}
+            {}
             <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="admin-sidebar-header">
                     <div className="sidebar-brand">
-                        <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Lou" className="brand-logo" />
+                        <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Ryo" className="brand-logo" />
                         <div className="brand-text">
-                            <span>Lou</span>
+                            <span>Ryo</span>
                             <small>Admin Panel</small>
                         </div>
                     </div>
@@ -74,7 +69,7 @@ function AdminLayout() {
                     </button>
                 </div>
 
-                {/* Admin Profile Section (Top) */}
+                {}
                 <div className="admin-profile-top">
                     <div className="admin-avatar-medium">
                         {admin?.avatar_url ? (
@@ -115,9 +110,9 @@ function AdminLayout() {
                 </div>
             </aside>
 
-            {/* Main Content */}
+            {}
             <main className="admin-main">
-                {/* Mobile Header */}
+                {}
                 <header className="mobile-header">
                     <button
                         className="mobile-menu-btn"
@@ -125,7 +120,7 @@ function AdminLayout() {
                     >
                         <Icon name="menu" size={22} />
                     </button>
-                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Lou" className="mobile-logo" />
+                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Ryo" className="mobile-logo" />
                     <span className="mobile-title">Admin</span>
                 </header>
 

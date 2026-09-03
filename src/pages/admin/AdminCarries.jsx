@@ -17,8 +17,6 @@ function AdminCarries() {
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)
     const [editando, setEditando] = useState(null)
-
-    // Filtros
     const [busqueda, setBusqueda] = useState('')
     const [filtroDestacado, setFiltroDestacado] = useState('todos')
 
@@ -50,8 +48,6 @@ function AdminCarries() {
             setLoading(false)
         }
     }
-
-    // Filtrar
     const carriesFiltrados = useMemo(() => {
         return carries.filter(c => {
             const matchBusqueda = !busqueda ||
@@ -136,7 +132,7 @@ function AdminCarries() {
                 </button>
             </div>
 
-            {/* Filtros */}
+            {}
             <div className="crud-filters">
                 <div className="filter-search">
                     <Icon name="star" size={18} />
@@ -158,7 +154,7 @@ function AdminCarries() {
                 </select>
             </div>
 
-            {/* Grid */}
+            {}
             <div className="crud-cards">
                 {carriesFiltrados.map(carry => (
                     <div key={carry.id} className="crud-card">
@@ -229,7 +225,7 @@ function AdminCarries() {
                 </div>
             )}
 
-            {/* Modal */}
+            {}
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>

@@ -17,7 +17,6 @@
     color: var(--color-text-muted);
 }
 
-/* Stats Grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -66,7 +65,6 @@
     color: var(--color-text-muted);
 }
 
-/* Quick Actions */
 .quick-actions h2 {
     font-size: var(--font-size-xl);
     font-weight: 600;

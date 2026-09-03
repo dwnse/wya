@@ -8,10 +8,13 @@ import {
     obtenerCarries,
     obtenerVetados,
     obtenerTiposVetado,
-    obtenerMisClips
+    obtenerMisClips,
+    obtenerMiembrosTier,
+    obtenerEstadisticasClan,
+    obtenerPuntosPorCategoria,
+    obtenerProgresoMiembro
+    , obtenerActividadMiembro
 } from '../services/supabaseService'
-
-// Hook genérico para fetching
 function useSupabaseQuery(queryFn, deps = []) {
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -48,10 +51,28 @@ function useSupabaseQuery(queryFn, deps = []) {
 
     return { data, loading, error, refetch: () => queryFn().then(setData) }
 }
-
-// Hooks específicos
 export function useMiembros() {
     return useSupabaseQuery(obtenerMiembros)
+}
+
+export function useMiembrosTier() {
+    return useSupabaseQuery(obtenerMiembrosTier)
+}
+
+export function useEstadisticasClan() {
+    return useSupabaseQuery(obtenerEstadisticasClan)
+}
+
+export function usePuntosPorCategoria(miembroId) {
+    return useSupabaseQuery(() => miembroId ? obtenerPuntosPorCategoria(miembroId) : Promise.resolve([]), [miembroId])
+}
+
+export function useProgresoMiembro(miembroId) {
+    return useSupabaseQuery(() => miembroId ? obtenerProgresoMiembro(miembroId) : Promise.resolve(null), [miembroId])
+}
+
+export function useActividadMiembro(miembroId) {
+    return useSupabaseQuery(() => miembroId ? obtenerActividadMiembro(miembroId) : Promise.resolve([]), [miembroId])
 }
 
 export function useClips() {
@@ -85,8 +106,6 @@ export function useTiposVetado() {
 export function useMisClips(usuarioId) {
     return useSupabaseQuery(() => usuarioId ? obtenerMisClips(usuarioId) : Promise.resolve([]), [usuarioId])
 }
-
-// Hook para clips agrupados por miembro
 export function useClipsAgrupados() {
     const { data: clips, loading, error } = useClips()
 
@@ -110,8 +129,6 @@ export function useClipsAgrupados() {
         error
     }
 }
-
-// Hook para galería agrupada por categoría
 export function useGaleriaAgrupada() {
     const { data: imagenes, loading, error } = useImagenesGaleria()
 

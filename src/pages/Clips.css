@@ -70,7 +70,6 @@
     border-radius: var(--radius-full);
 }
 
-/* Filters */
 .filters-bar {
     display: flex;
     gap: 12px;
@@ -220,7 +219,6 @@
     margin-bottom: 12px;
 }
 
-/* Tabs */
 .header-actions {
     margin-top: 16px;
 }
@@ -254,7 +252,6 @@
     border-bottom-color: var(--color-primary);
 }
 
-/* My Clips Status */
 .clip-status-badge {
     position: absolute;
     top: 10px;
@@ -290,7 +287,6 @@
     margin-top: 4px;
 }
 
-/* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;

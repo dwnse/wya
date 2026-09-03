@@ -3,9 +3,7 @@ import { Icon } from '../../components/Icons'
 import {
     obtenerTodosMiembros,
     obtenerTodosClips,
-    obtenerTodasImagenes,
-    obtenerTodosCarries,
-    obtenerTodosVetados
+    obtenerTodosCarries
 } from '../../services/adminService'
 import './Dashboard.css'
 
@@ -13,9 +11,7 @@ function Dashboard() {
     const [stats, setStats] = useState({
         miembros: 0,
         clips: 0,
-        imagenes: 0,
         carries: 0,
-        vetados: 0
     })
     const [loading, setLoading] = useState(true)
 
@@ -25,20 +21,16 @@ function Dashboard() {
 
     async function loadStats() {
         try {
-            const [miembros, clips, imagenes, carries, vetados] = await Promise.all([
+            const [miembros, clips, carries] = await Promise.all([
                 obtenerTodosMiembros(),
                 obtenerTodosClips(),
-                obtenerTodasImagenes(),
-                obtenerTodosCarries(),
-                obtenerTodosVetados()
+                obtenerTodosCarries()
             ])
 
             setStats({
                 miembros: miembros?.length || 0,
                 clips: clips?.length || 0,
-                imagenes: imagenes?.length || 0,
-                carries: carries?.length || 0,
-                vetados: vetados?.length || 0
+                carries: carries?.length || 0
             })
         } catch (error) {
             console.error('Error loading stats:', error)
@@ -50,16 +42,14 @@ function Dashboard() {
     const cards = [
         { label: 'Miembros', value: stats.miembros, icon: 'user', color: '#3b82f6' },
         { label: 'Clips', value: stats.clips, icon: 'video', color: '#ef4444' },
-        { label: 'Galería', value: stats.imagenes, icon: 'gallery', color: '#10b981' },
         { label: 'Top Clan', value: stats.carries, icon: 'star', color: '#f59e0b' },
-        { label: 'Vetados', value: stats.vetados, icon: 'ban', color: '#dc2626' },
     ]
 
     return (
         <div className="dashboard">
             <div className="dashboard-header">
                 <h1>Dashboard</h1>
-                <p>Bienvenido al panel de administración de Lou</p>
+                <p>Bienvenido al panel de administración de Ryo</p>
             </div>
 
             <div className="stats-grid">
@@ -89,13 +79,9 @@ function Dashboard() {
                         <Icon name="video" size={24} />
                         <span>Subir Clip</span>
                     </a>
-                    <a href="/admin/galeria" className="action-card">
-                        <Icon name="gallery" size={24} />
-                        <span>Subir Imagen</span>
-                    </a>
-                    <a href="/admin/vetados" className="action-card">
-                        <Icon name="ban" size={24} />
-                        <span>Reportar Vetado</span>
+                    <a href="/admin/puntos" className="action-card">
+                        <Icon name="target" size={24} />
+                        <span>Asignar Puntos</span>
                     </a>
                 </div>
             </div>

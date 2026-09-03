@@ -11,8 +11,6 @@ function Carries() {
     const { data: carries, loading, error, refetch } = useCarries()
     const [busqueda, setBusqueda] = useState('')
     const [filtroDestacado, setFiltroDestacado] = useState('todos')
-
-    // Filtrar
     const carriesFiltrados = useMemo(() => {
         if (!carries) return []
 
@@ -38,10 +36,10 @@ function Carries() {
                         <Icon name="star" size={36} />
                         Top Clan
                     </h1>
-                    <p className="page-subtitle">Los mejores jugadores de Lou</p>
+                    <p className="page-subtitle">Los mejores jugadores de Ryo</p>
                 </div>
 
-                {/* Filtros */}
+                {}
                 <div className="filters-bar">
                     <div className="filter-search">
                         <Icon name="star" size={18} />

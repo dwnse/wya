@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { obtenerTodosClipsAdmin, actualizarEstadoClip } from '../../services/supabaseService'
+import { crearClipManual } from '../../services/adminService'
 import Loading from '../../components/Loading'
 import ErrorMessage from '../../components/ErrorMessage'
 import { Icon } from '../../components/Icons'
 import './AdminClips.css'
-
-// Helper para video data (reutilizado de Clips.jsx)
 function getVideoData(url) {
     if (!url) return null
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
@@ -33,7 +32,10 @@ function AdminClips() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [actionLoading, setActionLoading] = useState(null)
-    const [filterStatus, setFilterStatus] = useState('pendiente') // 'pendiente' | 'aprobado' | 'rechazado' | 'todos'
+    const [filterStatus, setFilterStatus] = useState('pendiente')
+    const [showManualForm, setShowManualForm] = useState(false)
+    const [manualForm, setManualForm] = useState({ titulo: '', youtube_url: '', descripcion: '' })
+    const [manualSaving, setManualSaving] = useState(false)
 
     useEffect(() => {
         cargarClips()
@@ -58,7 +60,6 @@ function AdminClips() {
         try {
             setActionLoading(id)
             await actualizarEstadoClip(id, nuevoEstado)
-            // Actualizar localmente
             setAllClips(prev => prev.map(c =>
                 c.id === id ? { ...c, estado: nuevoEstado } : c
             ))
@@ -67,6 +68,22 @@ function AdminClips() {
             alert('Error al actualizar estado: ' + err.message)
         } finally {
             setActionLoading(null)
+        }
+    }
+
+    async function handleManualClip(event) {
+        event.preventDefault()
+        setManualSaving(true)
+        try {
+            await crearClipManual(manualForm)
+            setManualForm({ titulo: '', youtube_url: '', descripcion: '' })
+            setShowManualForm(false)
+            await cargarClips()
+            setFilterStatus('aprobado')
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setManualSaving(false)
         }
     }
 
@@ -83,7 +100,10 @@ function AdminClips() {
             <header className="page-header">
                 <h1>Gestión de Clips</h1>
                 <p>Revisa y aprueba los clips subidos por la comunidad</p>
+                <button className="btn-primary" onClick={() => setShowManualForm(true)}><Icon name="video" size={18} /> Añadir clip manual</button>
             </header>
+
+            {showManualForm && <div className="manual-clip-panel"><form onSubmit={handleManualClip}><div className="form-group"><label>Título</label><input value={manualForm.titulo} onChange={event => setManualForm({ ...manualForm, titulo: event.target.value })} required /></div><div className="form-group"><label>URL del clip</label><input type="url" value={manualForm.youtube_url} onChange={event => setManualForm({ ...manualForm, youtube_url: event.target.value })} placeholder="YouTube, Medal o enlace de video" required /></div><div className="form-group"><label>Descripción</label><textarea value={manualForm.descripcion} onChange={event => setManualForm({ ...manualForm, descripcion: event.target.value })} rows={3} /></div><div className="manual-clip-actions"><button type="button" className="btn-secondary" onClick={() => setShowManualForm(false)}>Cancelar</button><button type="submit" className="btn-primary" disabled={manualSaving}>{manualSaving ? 'Guardando...' : 'Publicar clip'}</button></div></form></div>}
 
             <div className="admin-filters">
                 <button

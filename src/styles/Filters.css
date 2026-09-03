@@ -1,8 +1,3 @@
-/* ============================================
-   SHARED FILTER STYLES FOR PUBLIC PAGES
-   ============================================ */
-
-/* Filters Bar */
 .filters-bar {
     display: flex;
     gap: 12px;
@@ -109,7 +104,6 @@
     color: white;
 }
 
-/* Empty State */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -126,7 +120,6 @@
     margin-bottom: 8px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .filters-bar {
         flex-direction: column;

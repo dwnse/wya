@@ -8,15 +8,10 @@ export function UserAuthProvider({ children }) {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Verificar sesión actual
         checkUser()
-
-        // Escuchar cambios de auth
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 if (session?.user) {
-                    // Si el storage manual no tiene token, guardarlo aquí por si acaso
-                    // (Esto maneja el caso donde supabase-js recupera sesión por sí mismo)
                     try {
                         const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
                         if (projectRef && session.access_token) {
@@ -35,8 +30,6 @@ export function UserAuthProvider({ children }) {
 
                     await loadUserProfile(session.user.id)
                 } else {
-                    // Solo limpiar usuario si estamos seguros que no hay sesión manual válida
-                    // Pero authStateChange 'SIGNED_OUT' es confiable
                     if (event === 'SIGNED_OUT') {
                         setUser(null)
                     }
@@ -50,7 +43,6 @@ export function UserAuthProvider({ children }) {
 
     async function checkUser() {
         try {
-            // Estrategia Manual de Recuperación de Sesión (Prioritaria)
             const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
             const key = `sb-${projectRef}-auth-token`
             const sessionStr = localStorage.getItem(key)
@@ -62,8 +54,6 @@ export function UserAuthProvider({ children }) {
                     const session = JSON.parse(sessionStr)
                     if (session.access_token) {
                         console.log('[UserAuthContext] Token encontrado en storage manual. Validando...')
-
-                        // Validar token via REST API
                         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
                         const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -90,8 +80,6 @@ export function UserAuthProvider({ children }) {
             }
 
             if (manualSessionValid) return
-
-            // Fallback a supabase-js
             const { data: { user: authUser } } = await supabase.auth.getUser()
             if (authUser) {
                 await loadUserProfile(authUser.id)
@@ -105,8 +93,6 @@ export function UserAuthProvider({ children }) {
             setLoading(false)
         }
     }
-
-    // Helper para headers
     async function getAuthHeaders() {
         try {
             const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
@@ -125,8 +111,6 @@ export function UserAuthProvider({ children }) {
                 }
             }
         } catch (e) { }
-
-        // Fallback
         const { data: { session } } = await supabase.auth.getSession()
         const token = session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -140,7 +124,6 @@ export function UserAuthProvider({ children }) {
 
     async function loadUserProfile(authUserId) {
         try {
-            // Usar fetch directo para evitar hanging
             const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
             const headers = await getAuthHeaders()
 
@@ -154,7 +137,6 @@ export function UserAuthProvider({ children }) {
             const userData = users?.[0]
 
             if (userData) {
-                // Aplanar rol
                 if (userData.roles) {
                     userData.rol = userData.roles.nombre
                     userData.rol_color = userData.roles.color
@@ -164,10 +146,7 @@ export function UserAuthProvider({ children }) {
             setUser(userData || null)
         } catch (error) {
             console.error('Error loading user profile:', error)
-
-            // Si hay error cargando perfil pero tenemos authUser ID, intentar setear un usuario básico
             if (authUserId) {
-                // Try to construct basic user if profile fails
                 setUser({ id: 'temp_' + authUserId, auth_user_id: authUserId, nombre: 'Usuario', email: '' })
             } else {
                 setUser(null)
@@ -176,13 +155,14 @@ export function UserAuthProvider({ children }) {
     }
 
     async function register(email, password, nombre) {
+        email = email.trim().toLowerCase()
+        nombre = nombre.trim().replace(/\s+/g, ' ').slice(0, 50)
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
         console.log('[UserAuthContext] Starting registration...')
 
         try {
-            // 1. Registrar usuario via REST API
             const authResponse = await fetch(`${supabaseUrl}/auth/v1/signup`, {
                 method: 'POST',
                 headers: {
@@ -199,15 +179,30 @@ export function UserAuthProvider({ children }) {
             const authData = await authResponse.json()
 
             if (!authResponse.ok) {
-                throw new Error(authData.msg || authData.message || (authData.error_description || 'Error al registrarse'))
+                const message = authData.msg || authData.message || authData.error_description || 'Error al registrarse'
+                if (authResponse.status === 429) {
+                    const rateLimitError = new Error('Has realizado demasiados intentos. Espera unos segundos y vuelve a intentarlo.')
+                    rateLimitError.code = 'RATE_LIMITED'
+                    rateLimitError.retryAfter = 45
+                    throw rateLimitError
+                }
+                throw new Error(message)
             }
-
-            // Caso: Email confirmación requerido
             if (authData.user && !authData.access_token) {
-                return null
+                return { user: authData.user, requiresConfirmation: true }
             }
 
             if (authData.user && authData.access_token) {
+                const projectRef = supabaseUrl.match(/\/\/([^.]+)\./)?.[1]
+                if (projectRef) {
+                    localStorage.setItem(`sb-${projectRef}-auth-token`, JSON.stringify({
+                        access_token: authData.access_token,
+                        refresh_token: authData.refresh_token,
+                        user: authData.user,
+                        expires_at: Math.floor(Date.now() / 1000) + (authData.expires_in || 3600),
+                        token_type: 'bearer'
+                    }))
+                }
                 try {
                     const token = authData.access_token
                     const headers = {
@@ -241,9 +236,10 @@ export function UserAuthProvider({ children }) {
                 } catch (e) {
                     console.error('Error creating profile fallback:', e)
                 }
+                await loadUserProfile(authData.user.id)
             }
 
-            return authData.user
+            return { user: authData.user, requiresConfirmation: false }
         } catch (e) {
             console.error('[UserAuthContext] Registration error:', e)
             throw e
@@ -251,12 +247,12 @@ export function UserAuthProvider({ children }) {
     }
 
     async function login(email, password) {
+        email = email.trim().toLowerCase()
         console.log('[UserAuthContext] Intentando login REST...', email)
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
         try {
-            // 1. Login via REST API
             const authResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
                 method: 'POST',
                 headers: {
@@ -273,12 +269,14 @@ export function UserAuthProvider({ children }) {
 
             if (!authResponse.ok) {
                 console.error('[UserAuthContext] Auth error REST:', authData)
-                throw new Error(authData.error_description || authData.msg || 'Error al iniciar sesión')
+                const authMessage = authData.error_description || authData.msg || 'Error al iniciar sesión'
+                if (authMessage.toLowerCase().includes('email not confirmed')) {
+                    throw new Error('Tu email todavía no está confirmado. Revisa tu bandeja de entrada o solicita otro correo de confirmación.')
+                }
+                throw new Error(authMessage)
             }
 
             console.log('[UserAuthContext] REST Login éxito')
-
-            // Guardar token en localStorage manualmente
             if (authData.access_token) {
                 try {
                     const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
@@ -303,8 +301,6 @@ export function UserAuthProvider({ children }) {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
-
-                // 3. Cargar perfil
                 try {
                     let response = await fetch(
                         `${supabaseUrl}/rest/v1/usuarios?select=*,roles(nombre,color)&auth_user_id=eq.${authData.user.id}&estado=eq.activo&limit=1`,
@@ -312,21 +308,9 @@ export function UserAuthProvider({ children }) {
                     )
 
                     let users = await response.json()
-
-                    // Si no existe perfil, crearlo
                     if (!users?.length) {
-                        // ... (código de creación omitido para brevedad en replace, pero debo mantenerlo?)
-                        // Mejor reemplazar solo el query fetch y luego el procesamiento
-                        // Pero replace_file_content con bloques grandes es riesgoso.
-                        // Haré un replace mas pequeño solo del fetch y luego del procesamiento
                     }
-
-                    // REINTENTO CON REPLACE MAS PEQUEÑO
-
-
-                    // Si no existe perfil, crearlo
                     if (!users?.length) {
-                        // Intentar usar nombre de metadata
                         const metaName = authData.user.user_metadata?.nombre || authData.user.user_metadata?.name
                         const finalName = metaName || email.split('@')[0]
 
@@ -349,8 +333,6 @@ export function UserAuthProvider({ children }) {
                     }
 
                     const userData = users?.[0]
-
-                    // Actualizar último acceso (sin await)
                     if (userData) {
                         fetch(
                             `${supabaseUrl}/rest/v1/usuarios?id=eq.${userData.id}`,
@@ -363,7 +345,6 @@ export function UserAuthProvider({ children }) {
                     }
 
                     if (userData) {
-                        // Aplanar rol en login también
                         if (userData.roles) {
                             userData.rol = userData.roles.nombre
                             userData.rol_color = userData.roles.color
@@ -374,8 +355,6 @@ export function UserAuthProvider({ children }) {
                 } catch (err) {
                     console.error('[UserAuthContext] Error en flujo de perfil:', err)
                 }
-
-                // Fallback
                 const fallbackUser = {
                     id: 'temp_' + authData.user.id,
                     auth_user_id: authData.user.id,
@@ -394,6 +373,24 @@ export function UserAuthProvider({ children }) {
         }
     }
 
+    async function resendConfirmation(email) {
+        const normalizedEmail = email.trim().toLowerCase()
+        if (!normalizedEmail) throw new Error('Escribe tu email para reenviar la confirmación')
+
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: normalizedEmail,
+            options: {
+                emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`
+            }
+        })
+
+        if (error) {
+            if (error.status === 429) throw new Error('Espera unos segundos antes de solicitar otro correo.')
+            throw new Error(error.message || 'No se pudo reenviar el correo de confirmación')
+        }
+    }
+
     async function logout() {
         try {
             const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
@@ -403,7 +400,6 @@ export function UserAuthProvider({ children }) {
         } catch (e) { }
 
         try {
-            // Intentar, pero ignorar error si se cuelga
             supabase.auth.signOut().then(() => { }).catch(() => { })
         } catch (e) { }
 
@@ -438,6 +434,7 @@ export function UserAuthProvider({ children }) {
         isLoggedIn: !!user,
         register,
         login,
+        resendConfirmation,
         logout,
         updateProfile
     }

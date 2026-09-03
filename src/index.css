@@ -1,7 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
-  /* Color Palette - Dark & Red */
   --color-bg: #0a0a0a;
   --color-bg-secondary: #111111;
   --color-bg-tertiary: #1a1a1a;
@@ -24,34 +23,30 @@
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-hover: rgba(220, 38, 38, 0.5);
 
-  /* Danger levels */
   --color-danger-5: #dc2626;
   --color-danger-4: #ea580c;
   --color-danger-3: #d97706;
   --color-danger-2: #ca8a04;
   --color-danger-1: #65a30d;
 
-  /* Shadows */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 30px var(--color-primary-glow);
   --shadow-glow-sm: 0 0 15px var(--color-primary-glow);
 
-  /* Transitions */
   --transition-fast: 0.15s ease;
   --transition-medium: 0.25s ease;
   --transition-slow: 0.4s ease;
 
-  /* Border Radius */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-full: 9999px;
 
-  /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family: 'DM Sans', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -112,7 +107,6 @@ button {
   background: none;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -130,13 +124,11 @@ button {
   background: var(--color-primary);
 }
 
-/* Selection */
 ::selection {
   background: var(--color-primary);
   color: white;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -178,7 +170,6 @@ button {
   opacity: 0;
 }
 
-/* Utility Classes */
 .text-primary {
   color: var(--color-primary);
 }
@@ -191,7 +182,6 @@ button {
   text-align: center;
 }
 
-/* Card Base */
 .card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
@@ -204,7 +194,6 @@ button {
   box-shadow: var(--shadow-glow-sm);
 }
 
-/* Badge */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -227,7 +216,6 @@ button {
   color: #1a1a1a;
 }
 
-/* Page Header */
 .page-header {
   text-align: center;
   margin-bottom: 50px;
@@ -252,7 +240,6 @@ button {
   font-size: var(--font-size-lg);
 }
 
-/* Empty State */
 .empty-state {
   text-align: center;
   padding: 80px 20px;

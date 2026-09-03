@@ -1,6 +1,4 @@
 import { supabase } from '../supabaseClient'
-
-// Helper para hacer fetch directo (bypass del cliente si hay problemas)
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -20,10 +18,6 @@ async function fetchSupabase(table, query = '') {
   }
   return response.json()
 }
-
-// ============================================
-// MIEMBROS
-// ============================================
 export async function obtenerMiembros() {
   const data = await fetchSupabase('miembros',
     'select=*,roles_miembro(roles(nombre,color)),enlaces_sociales_miembro(url_perfil,es_principal,plataformas_sociales(nombre,icono_url))&estado=eq.activo&order=nombre_mostrar'
@@ -37,10 +31,35 @@ export async function obtenerMiembroPorId(id) {
   )
   return data?.[0] || null
 }
+export async function obtenerMiembrosTier() {
+  return await fetchSupabase('vista_miembros_tier',
+    'select=*&order=tier_orden.desc,puntos_totales.desc,nombre_mostrar'
+  )
+}
 
-// ============================================
-// CLIPS
-// ============================================
+export async function obtenerEstadisticasClan() {
+  const data = await fetchSupabase('vista_estadisticas_clan', 'select=*&limit=1')
+  return data?.[0] || null
+}
+
+export async function obtenerPuntosPorCategoria(miembroId) {
+  return await fetchSupabase('vista_puntos_por_categoria',
+    `select=*&miembro_id=eq.${encodeURIComponent(miembroId)}&order=puntos.desc`
+  )
+}
+
+export async function obtenerProgresoMiembro(miembroId) {
+  const data = await fetchSupabase('vista_progreso_miembros',
+    `select=*&miembro_id=eq.${encodeURIComponent(miembroId)}&limit=1`
+  )
+  return data?.[0] || null
+}
+
+export async function obtenerActividadMiembro(miembroId) {
+  return await fetchSupabase('actividad_clan',
+    `select=*&miembro_id=eq.${encodeURIComponent(miembroId)}&order=creado_en.desc&limit=8`
+  )
+}
 export async function obtenerClips() {
   const data = await fetchSupabase('clips',
     'select=*,miembros(id,nombre_mostrar,avatar_url),categorias_clips(nombre,slug)&estado=in.(aprobado,activo)&order=creado_en.desc'
@@ -63,29 +82,30 @@ export async function obtenerCategoriasClips() {
 }
 
 export async function crearClip(clip) {
-  // clip debe incluir: titulo, youtube_url, descripcion (opcional), usuario_id
-  // Los clips creados por usuario entran como 'pendiente' por defecto en DB
-  return await fetchSupabaseAuthenticated('POST', 'clips', clip, 'select=*,miembros(nombre_mostrar)')
+  const { data, error } = await supabase.rpc('crear_clip_usuario', {
+    p_titulo: clip.titulo,
+    p_url: clip.youtube_url,
+    p_descripcion: clip.descripcion || null
+  })
+  if (error) throw error
+  return data
 }
 
 export async function obtenerMisClips(usuarioId) {
-  // Obtiene clips del usuario sin importar estado
   return await fetchSupabaseAuthenticated('GET', 'clips', null,
     `select=*,categorias_clips(nombre,slug)&usuario_id=eq.${usuarioId}&order=creado_en.desc`
   )
 }
 
 export async function obtenerClipsPendientes() {
-  // Solo para admins
   return await fetchSupabaseAuthenticated('GET', 'clips', null,
-    `select=*,usuarios(id,nombre,avatar_url),miembros(nombre_mostrar)&estado=eq.pendiente&order=creado_en.desc`
+    `select=*,usuarios:usuarios!clips_usuario_id_fkey(id,nombre,avatar_url),miembros:miembros!clips_miembro_id_fkey(nombre_mostrar)&estado=eq.pendiente&order=creado_en.desc`
   )
 }
 
 export async function obtenerTodosClipsAdmin() {
-  // Para admins: obtener todos sin filtro de estado inicial
   return await fetchSupabaseAuthenticated('GET', 'clips', null,
-    `select=*,usuarios(id,nombre,avatar_url),miembros(nombre_mostrar)&order=creado_en.desc`
+    `select=*,usuarios:usuarios!clips_usuario_id_fkey(id,nombre,avatar_url),miembros:miembros!clips_miembro_id_fkey(nombre_mostrar)&order=creado_en.desc`
   )
 }
 
@@ -95,10 +115,6 @@ export async function actualizarEstadoClip(clipId, nuevoEstado) {
   }
   return await fetchSupabaseAuthenticated('PATCH', 'clips', { estado: nuevoEstado }, `id=eq.${clipId}`)
 }
-
-// ============================================
-// GALERÍA
-// ============================================
 export async function obtenerImagenesGaleria() {
   const data = await fetchSupabase('imagenes_galeria',
     'select=*,categorias_galeria(nombre,slug),miembros(nombre_mostrar)&estado=eq.activo&order=creado_en.desc'
@@ -114,7 +130,6 @@ export async function obtenerCategoriasGaleria() {
 }
 
 export async function obtenerImagenesPorCategoria(categoriaSlug) {
-  // Primero obtener el ID de la categoría
   const categorias = await fetchSupabase('categorias_galeria',
     `select=id&slug=eq.${categoriaSlug}`
   )
@@ -125,20 +140,12 @@ export async function obtenerImagenesPorCategoria(categoriaSlug) {
   )
   return data
 }
-
-// ============================================
-// CARRIES (TOP CLAN)
-// ============================================
 export async function obtenerCarries() {
   const data = await fetchSupabase('carries',
     'select=*,miembros(id,nombre_mostrar,avatar_url,banner_url,biografia,roles_miembro(roles(nombre,color)),enlaces_sociales_miembro(url_perfil,plataformas_sociales(nombre,icono_url)))&estado=eq.activo&order=orden'
   )
   return data
 }
-
-// ============================================
-// VETADOS
-// ============================================
 export async function obtenerVetados() {
   const data = await fetchSupabase('vetados',
     'select=*,tipos_vetado(nombre,icono,nivel_peligro),miembros:reportado_por(nombre_mostrar)&estado=eq.activo&order=creado_en.desc'
@@ -152,28 +159,18 @@ export async function obtenerTiposVetado() {
   )
   return data
 }
-
-// ============================================
-// PLATAFORMAS SOCIALES
-// ============================================
 export async function obtenerPlataformas() {
   const data = await fetchSupabase('plataformas_sociales',
     'select=*&estado=eq.activo'
   )
   return data
 }
-
-// ============================================
-// ROLES
-// ============================================
 export async function obtenerRoles() {
   const data = await fetchSupabase('roles',
     'select=*&estado=eq.activo&order=prioridad.desc'
   )
   return data
 }
-
-// Helper para obtener token de auth manual
 function getAuthToken() {
   try {
     const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
@@ -189,8 +186,6 @@ function getAuthToken() {
     return null
   }
 }
-
-// Fetch autenticado
 async function fetchSupabaseAuthenticated(method, table, body = null, query = '') {
   const token = getAuthToken()
   const headers = {
@@ -222,10 +217,6 @@ async function fetchSupabaseAuthenticated(method, table, body = null, query = ''
   return response.json()
 }
 
-// ============================================
-// REACCIONES
-// ============================================
-
 export function getSessionId() {
   let sessionId = localStorage.getItem('exo_session_id')
   if (!sessionId) {
@@ -255,19 +246,14 @@ export async function obtenerReacciones(tipoContenido, contenidoId, usuarioId = 
 
 export async function toggleReaccion(tipoContenido, contenidoId, emoji, usuarioId) {
   if (!usuarioId) throw new Error('Usuario no autenticado')
-
-  // Verificar si ya existe (Fetch normal está bien para lectura si es pública, pero mejor usar auth si es posible)
-  // Usamos fetchSupabaseAuthenticated GET para asegurar consistencia
   const existentes = await fetchSupabaseAuthenticated('GET', 'reacciones', null,
     `select=id&tipo_contenido=eq.${tipoContenido}&contenido_id=eq.${contenidoId}&emoji=eq.${encodeURIComponent(emoji)}&usuario_id=eq.${usuarioId}`
   )
 
   if (existentes?.length > 0) {
-    // Eliminar reacción
     await fetchSupabaseAuthenticated('DELETE', 'reacciones', null, `id=eq.${existentes[0].id}`)
     return { added: false }
   } else {
-    // Agregar reacción
     await fetchSupabaseAuthenticated('POST', 'reacciones', {
       tipo_contenido: tipoContenido,
       contenido_id: contenidoId,
@@ -278,10 +264,6 @@ export async function toggleReaccion(tipoContenido, contenidoId, emoji, usuarioI
     return { added: true }
   }
 }
-
-// ============================================
-// COMENTARIOS
-// ============================================
 
 export async function obtenerComentarios(tipoContenido, contenidoId) {
   const data = await fetchSupabase('comentarios',
@@ -301,10 +283,8 @@ export async function crearComentario(tipoContenido, contenidoId, autor, conteni
     usuario_id: usuarioId,
     session_id: getSessionId()
   },
-    'select=*,usuarios(nombre,avatar_url)' // Query params para retornar dato completo
+    'select=*,usuarios(nombre,avatar_url)'
   )
-
-  // fetchSupabaseAuthenticated devuelve array (por return=representation implícito)
   return data?.[0]
 }
 
@@ -317,7 +297,5 @@ export async function obtenerConteoComentarios(tipoContenido, contenidoId) {
 
 export async function eliminarComentarioPublico(id, usuarioId) {
   if (!usuarioId) throw new Error('Usuario no autenticado')
-  // Eliminación lógica (soft delete) usando fetch autenticado
-  // La RLS debe permitir esto si es dueño O si tiene rol CEO
   await fetchSupabaseAuthenticated('DELETE', 'comentarios', null, `id=eq.${id}`)
 }

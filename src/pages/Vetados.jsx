@@ -23,8 +23,6 @@ function Vetados() {
         }
         return colores[nivel] || 'var(--color-text-muted)'
     }
-
-    // Filtrar
     const vetadosFiltrados = useMemo(() => {
         if (!vetados) return []
 
@@ -56,7 +54,7 @@ function Vetados() {
                     <span>Retrasados.</span>
                 </div>
 
-                {/* Filtros */}
+                {}
                 <div className="filters-bar">
                     <div className="filter-search">
                         <Icon name="ban" size={18} />

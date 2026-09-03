@@ -12,8 +12,6 @@ import {
 import './Interacciones.css'
 
 const EMOJIS = ['🔥', '❤️', '😂', '👏', '💀']
-
-// Componente de Reacciones
 export function Reacciones({ tipoContenido, contenidoId, compact = false }) {
     const { user, isLoggedIn } = useUserAuth()
     const location = useLocation()
@@ -41,8 +39,6 @@ export function Reacciones({ tipoContenido, contenidoId, compact = false }) {
 
         try {
             const result = await toggleReaccion(tipoContenido, contenidoId, emoji, user.id)
-
-            // Actualizar estado local
             setConteo(prev => ({
                 ...prev,
                 [emoji]: Math.max(0, (prev[emoji] || 0) + (result.added ? 1 : -1))
@@ -101,8 +97,6 @@ export function Reacciones({ tipoContenido, contenidoId, compact = false }) {
         </div>
     )
 }
-
-// Componente de Comentarios
 export function Comentarios({ tipoContenido, contenidoId }) {
     const { user, isLoggedIn } = useUserAuth()
     const location = useLocation()
@@ -206,7 +200,7 @@ export function Comentarios({ tipoContenido, contenidoId }) {
 
             {mostrar && (
                 <div className="comentarios-content">
-                    {/* Formulario o Login Prompt */}
+                    {}
                     {isLoggedIn ? (
                         <form className="comentario-form" onSubmit={handleSubmit}>
                             <div className="form-user-info">
@@ -252,7 +246,7 @@ export function Comentarios({ tipoContenido, contenidoId }) {
                         </div>
                     )}
 
-                    {/* Lista de comentarios */}
+                    {}
                     <div className="comentarios-lista">
                         {loading && <p className="loading-text">Cargando...</p>}
 
@@ -299,8 +293,6 @@ export function Comentarios({ tipoContenido, contenidoId }) {
         </div>
     )
 }
-
-// Componente combinado
 export function InteraccionesPanel({ tipoContenido, contenidoId }) {
     return (
         <div className="interacciones-panel">

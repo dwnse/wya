@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import Loading from '../components/Loading.jsx'
@@ -9,12 +9,8 @@ import { useClipsAgrupados, useMisClips } from '../hooks/useSupabase.js'
 import { useUserAuth } from '../context/UserAuthContext'
 import { crearClip } from '../services/supabaseService'
 import './Clips.css'
-
-// Detecta y transforma URLs de video (YouTube, Medal, Discord, mp4)
 function getVideoData(url) {
     if (!url) return null
-
-    // 1. YouTube
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
         let videoId = null
         if (url.includes('youtube.com/embed/')) return { type: 'iframe', src: url }
@@ -24,25 +20,15 @@ function getVideoData(url) {
 
         if (videoId) return { type: 'iframe', src: `https://www.youtube.com/embed/${videoId}` }
     }
-
-    // 2. Medal.tv
-    // Formato típico: https://medal.tv/games/cod-mw2/clips/1A2B3C4D/vp5X6Y7Z
-    // Embed: https://medal.tv/clip/1A2B3C4D/vp5X6Y7Z?autoplay=0&muted=0&loop=0
     if (url.includes('medal.tv')) {
-        // Intento simple de convertir URL de clip a embed
-        // Extraemos IDs clave o usamos la ruta /clip/ si es posible
-        // Pero Medal ofrece un iframe específico. Una forma robusta es reemplazar '/clips/' por '/clip/' y limpiar query params
 
         let src = url
         if (url.includes('/clips/')) {
             src = url.replace('/clips/', '/clip/')
         }
-        // Asegurar parámetros básicos
         const symbol = src.includes('?') ? '&' : '?'
         return { type: 'iframe', src: `${src}${symbol}autoplay=0&muted=0&loop=0&controls=1` }
     }
-
-    // 3. Archivos directos (Discord, mp4, etc.)
     if (url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('cdn.discordapp.com')) {
         return { type: 'video', src: url }
     }
@@ -55,18 +41,23 @@ function Clips() {
     const { data: clipsAgrupados, loading, error, refetch } = useClipsAgrupados()
     const { data: misClips, loading: loadingMisClips, refetch: refetchMisClips } = useMisClips(user?.id)
 
-    const [activeTab, setActiveTab] = useState('todos') // 'todos' | 'mis-clips'
+    const [activeTab, setActiveTab] = useState('todos')
     const [busqueda, setBusqueda] = useState('')
     const [filtroMiembro, setFiltroMiembro] = useState('todos')
-
-    // Modal Upload State
     const [showUploadModal, setShowUploadModal] = useState(false)
     const [uploadForm, setUploadForm] = useState({ youtube_url: '', titulo: '', descripcion: '' })
-    const [uploadStatus, setUploadStatus] = useState('idle') // idle, loading, success, error
+    const [uploadStatus, setUploadStatus] = useState('idle')
+    const [uploadCooldown, setUploadCooldown] = useState(0)
+
+    useEffect(() => {
+        if (!uploadCooldown) return undefined
+        const timer = window.setInterval(() => setUploadCooldown(value => Math.max(0, value - 1)), 1000)
+        return () => window.clearInterval(timer)
+    }, [uploadCooldown])
 
     const handleUpload = async (e) => {
         e.preventDefault()
-        if (!user || !uploadForm.youtube_url || !uploadForm.titulo) return
+        if (!user || !uploadForm.youtube_url || !uploadForm.titulo || uploadCooldown > 0) return
 
         try {
             setUploadStatus('loading')
@@ -84,18 +75,15 @@ function Clips() {
         } catch (err) {
             console.error(err)
             setUploadStatus('error')
+            if (err.message?.includes('5 minutos')) setUploadCooldown(300)
         }
     }
-
-    // Lista de miembros para el filtro
     const miembros = useMemo(() => {
         if (!clipsAgrupados) return []
         return clipsAgrupados
             .filter(g => g.miembro)
             .map(g => ({ id: g.miembro.id, nombre: g.miembro.nombre_mostrar }))
     }, [clipsAgrupados])
-
-    // Filtrar clips
     const clipsFiltrados = useMemo(() => {
         if (!clipsAgrupados) return []
 
@@ -127,7 +115,7 @@ function Clips() {
                         <Icon name="video" size={36} />
                         Clips
                     </h1>
-                    <p className="page-subtitle">Los mejores momentos del clan Lou</p>
+                    <p className="page-subtitle">Los mejores momentos del clan Ryo</p>
 
                     {user && (
                         <div className="header-actions">
@@ -159,7 +147,7 @@ function Clips() {
                     </div>
                 )}
 
-                {/* Filtros */}
+                {}
                 <div className="filters-bar">
                     <div className="filter-search">
                         <Icon name="video" size={18} />
@@ -280,7 +268,7 @@ function Clips() {
                     </section>
                 ))}
 
-                {/* Vista Mis Clips */}
+                {}
                 {activeTab === 'mis-clips' && (
                     <div className="my-clips-view animate-fade-in">
                         {loadingMisClips && <Loading text="Cargando tus clips..." />}
@@ -329,7 +317,7 @@ function Clips() {
                     </div>
                 )}
 
-                {/* Modal de Subida */}
+                {}
                 {showUploadModal && (
                     <div className="modal-overlay">
                         <div className="modal-content upload-modal">
@@ -377,9 +365,9 @@ function Clips() {
                                             placeholder="Cuenta un poco sobre qué pasó..."
                                         />
                                     </div>
-                                    {uploadStatus === 'error' && <p className="error-text">Ocurrió un error al subir el clip.</p>}
-                                    <button type="submit" className="btn-primary" disabled={uploadStatus === 'loading'}>
-                                        {uploadStatus === 'loading' ? 'Enviando...' : 'Enviar Clip'}
+                                    {uploadStatus === 'error' && <p className="error-text">{uploadCooldown ? `Debes esperar ${Math.ceil(uploadCooldown / 60)} minutos para enviar otro clip.` : 'Ocurrió un error al subir el clip.'}</p>}
+                                    <button type="submit" className="btn-primary" disabled={uploadStatus === 'loading' || uploadCooldown > 0}>
+                                        {uploadStatus === 'loading' ? 'Enviando...' : uploadCooldown ? `Espera ${Math.ceil(uploadCooldown / 60)} min` : 'Enviar Clip'}
                                     </button>
                                 </form>
                             )}

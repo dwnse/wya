@@ -12,8 +12,6 @@ function AdminUsuarios() {
     const [usuarios, setUsuarios] = useState([])
     const [roles, setRoles] = useState([])
     const [loading, setLoading] = useState(true)
-
-    // Filtros
     const [busqueda, setBusqueda] = useState('')
     const [filtroRol, setFiltroRol] = useState('todos')
 
@@ -38,10 +36,7 @@ function AdminUsuarios() {
 
     const usuariosFiltrados = useMemo(() => {
         return usuarios.filter(u => {
-            // Busqueda por nombre o email (si estuviera disponible, en este caso user_metadata)
             const matchBusqueda = u.nombre?.toLowerCase().includes(busqueda.toLowerCase())
-
-            // Filtro por Rol
             const matchRol = filtroRol === 'todos' || u.roles?.nombre === filtroRol
 
             return matchBusqueda && matchRol
@@ -52,7 +47,6 @@ function AdminUsuarios() {
         if (!confirm('¿Estás seguro de cambiar el rol de este usuario?')) return
 
         try {
-            // Optimistic update
             const oldUsuarios = [...usuarios]
             setUsuarios(prev => prev.map(u => {
                 if (u.id === usuarioId) {
@@ -65,7 +59,7 @@ function AdminUsuarios() {
             await actualizarUsuario(usuarioId, { rol_id: newRoleId })
         } catch (error) {
             alert('Error al actualizar rol')
-            loadData() // Revert on error
+            loadData()
         }
     }
 
@@ -80,7 +74,7 @@ function AdminUsuarios() {
                 </div>
             </div>
 
-            {/* Filtros */}
+            {}
             <div className="crud-filters">
                 <div className="filter-search">
                     <Icon name="user" size={18} />
@@ -105,7 +99,7 @@ function AdminUsuarios() {
                 </select>
             </div>
 
-            {/* Tabla de Usuarios */}
+            {}
             <div className="crud-table-wrapper">
                 <table className="crud-table">
                     <thead>

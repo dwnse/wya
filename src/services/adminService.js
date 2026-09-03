@@ -1,38 +1,46 @@
 import { supabase } from '../supabaseClient'
 
-// ============================================
-// AUTENTICACIÓN
-// ============================================
-
 export async function login(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password
     })
 
     if (error) throw error
 
-    // Verificar si es administrador
-    const { data: admin, error: adminError } = await supabase
-        .from('administradores')
-        .select('*')
-        .eq('auth_user_id', data.user.id)
-        .eq('estado', 'activo')
-        .eq('estado', 'activo')
-        .maybeSingle()
-
-    if (adminError || !admin) {
+    const admin = await obtenerPerfilAdministrativo(data.user)
+    if (!admin) {
         await supabase.auth.signOut()
         throw new Error('No tienes permisos de administrador')
     }
 
-    // Actualizar último acceso
-    await supabase
-        .from('administradores')
-        .update({ ultimo_acceso: new Date().toISOString() })
-        .eq('id', admin.id)
+    await supabase.from('usuarios').update({ ultimo_acceso: new Date().toISOString() }).eq('id', admin.usuario_id)
 
     return { user: data.user, admin }
+}
+
+async function obtenerPerfilAdministrativo(authUser) {
+    const { data: profile, error } = await supabase
+        .from('usuarios')
+        .select('*, roles(id,nombre,color,prioridad)')
+        .eq('auth_user_id', authUser.id)
+        .eq('estado', 'activo')
+        .maybeSingle()
+
+    if (error || !profile) return null
+
+    const roleName = profile.roles?.nombre
+    if (!['CEO', 'Administrador', 'Moderador'].includes(roleName)) return null
+
+    return {
+        ...profile,
+        usuario_id: profile.id,
+        nombre: profile.nombre || authUser.email?.split('@')[0] || 'Administrador',
+        email: profile.email || authUser.email,
+        nivel_acceso: roleName === 'CEO' ? 5 : roleName === 'Administrador' ? 4 : 3,
+        rol: roleName,
+        rol_color: profile.roles?.color
+    }
 }
 
 export async function logout() {
@@ -45,13 +53,7 @@ export async function getCurrentUser() {
 
     if (!user) return null
 
-    const { data: admin } = await supabase
-        .from('administradores')
-        .select('*')
-        .eq('auth_user_id', user.id)
-        .eq('estado', 'activo')
-        .eq('estado', 'activo')
-        .maybeSingle()
+    const admin = await obtenerPerfilAdministrativo(user)
 
     return admin ? { user, admin } : null
 }
@@ -61,10 +63,6 @@ export function onAuthStateChange(callback) {
         callback(event, session)
     })
 }
-
-// ============================================
-// CRUD MIEMBROS
-// ============================================
 
 export async function crearMiembro(datos) {
     const { data, error } = await supabase
@@ -98,10 +96,6 @@ export async function eliminarMiembro(id) {
     if (error) throw error
 }
 
-// ============================================
-// CRUD CLIPS
-// ============================================
-
 export async function crearClip(datos) {
     const { data, error } = await supabase
         .from('clips')
@@ -133,10 +127,6 @@ export async function eliminarClip(id) {
 
     if (error) throw error
 }
-
-// ============================================
-// CRUD GALERÍA
-// ============================================
 
 export async function crearImagen(datos) {
     const { data, error } = await supabase
@@ -170,10 +160,6 @@ export async function eliminarImagen(id) {
     if (error) throw error
 }
 
-// ============================================
-// CRUD CARRIES
-// ============================================
-
 export async function crearCarry(datos) {
     const { data, error } = await supabase
         .from('carries')
@@ -205,10 +191,6 @@ export async function eliminarCarry(id) {
 
     if (error) throw error
 }
-
-// ============================================
-// CRUD VETADOS
-// ============================================
 
 export async function crearVetado(datos) {
     const { data, error } = await supabase
@@ -242,10 +224,6 @@ export async function eliminarVetado(id) {
     if (error) throw error
 }
 
-// ============================================
-// OBTENER TODOS (ADMIN - incluye inactivos)
-// ============================================
-
 export async function obtenerTodosMiembros() {
     const { data, error } = await supabase
         .from('miembros')
@@ -255,6 +233,66 @@ export async function obtenerTodosMiembros() {
 
     if (error) throw error
     return data
+}
+
+export async function obtenerCategoriasPuntosAdmin() {
+    const { data, error } = await supabase
+        .from('categorias_puntos')
+        .select('*')
+        .eq('estado', 'activo')
+        .order('orden')
+
+    if (error) throw error
+    return data
+}
+
+export async function asignarPuntosMiembro(datos) {
+    const { data, error } = await supabase.rpc('asignar_puntos_miembro', {
+        p_miembro_id: datos.miembro_id,
+        p_categoria_id: datos.categoria_id,
+        p_cantidad: Number(datos.cantidad),
+        p_motivo: datos.motivo,
+        p_evento_id: datos.evento_id || null
+    })
+
+    if (error) throw error
+    return Array.isArray(data) ? data[0] : data
+}
+
+export async function crearClipManual(datos) {
+    const { data, error } = await supabase.rpc('crear_clip_admin', {
+        p_titulo: datos.titulo,
+        p_url: datos.youtube_url,
+        p_descripcion: datos.descripcion || null
+    })
+    if (error) throw error
+    return data
+}
+
+export async function obtenerEventosAdmin() {
+    const { data, error } = await supabase
+        .from('eventos')
+        .select('*')
+        .order('fecha_inicio', { ascending: false })
+    if (error) throw error
+    return data
+}
+
+export async function crearEvento(datos) {
+    const { data, error } = await supabase.from('eventos').insert([datos]).select().single()
+    if (error) throw error
+    return data
+}
+
+export async function actualizarEvento(id, datos) {
+    const { data, error } = await supabase.from('eventos').update(datos).eq('id', id).select().single()
+    if (error) throw error
+    return data
+}
+
+export async function eliminarEvento(id) {
+    const { error } = await supabase.from('eventos').update({ estado: 'cancelado' }).eq('id', id)
+    if (error) throw error
 }
 
 export async function obtenerTodosClips() {
@@ -314,10 +352,6 @@ export async function obtenerTodosVetados() {
     return data
 }
 
-// ============================================
-// CRUD CATEGORÍAS GALERÍA
-// ============================================
-
 export async function obtenerCategoriasGaleriaAdmin() {
     const { data, error } = await supabase
         .from('categorias_galeria')
@@ -359,10 +393,6 @@ export async function eliminarCategoriaGaleria(id) {
 
     if (error) throw error
 }
-
-// ============================================
-// CRUD CATEGORÍAS CLIPS
-// ============================================
 
 export async function obtenerCategoriasClipsAdmin() {
     const { data, error } = await supabase
@@ -406,10 +436,6 @@ export async function eliminarCategoriaClips(id) {
     if (error) throw error
 }
 
-// ============================================
-// CRUD TIPOS VETADO
-// ============================================
-
 export async function obtenerTiposVetadoAdmin() {
     const { data, error } = await supabase
         .from('tipos_vetado')
@@ -451,10 +477,6 @@ export async function eliminarTipoVetado(id) {
 
     if (error) throw error
 }
-
-// ============================================
-// CRUD ROLES
-// ============================================
 
 export async function obtenerRolesAdmin() {
     const { data, error } = await supabase
@@ -498,10 +520,6 @@ export async function eliminarRol(id) {
     if (error) throw error
 }
 
-// ============================================
-// COMENTARIOS (Admin)
-// ============================================
-
 export async function obtenerTodosComentarios() {
     const { data, error } = await supabase
         .from('comentarios')
@@ -530,10 +548,6 @@ export async function restaurarComentario(id) {
     if (error) throw error
 }
 
-// ============================================
-// CRUD USUARIOS (PÚBLICOS)
-// ============================================
-
 export async function obtenerTodosUsuarios() {
     const { data, error } = await supabase
         .from('usuarios')
@@ -559,4 +573,3 @@ export async function actualizarUsuario(id, datos) {
     return data
 }
 
-/* Fin del archivo */

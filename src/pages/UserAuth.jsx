@@ -5,33 +5,34 @@ import { Icon } from '../components/Icons.jsx'
 import './UserAuth.css'
 
 function UserAuth() {
-    const [mode, setMode] = useState('login') // 'login' | 'register'
+    const [mode, setMode] = useState('login')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [nombre, setNombre] = useState('')
     const [loading, setLoading] = useState(false)
+    const [resendLoading, setResendLoading] = useState(false)
+    const [cooldown, setCooldown] = useState(0)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
 
-    const { login, register } = useUserAuth()
+    const { login, register, resendConfirmation } = useUserAuth()
     const navigate = useNavigate()
     const location = useLocation()
 
     const from = location.state?.from || '/'
 
     const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    // Min 8 chars, 1 letter, 1 number
-    const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/
+    const PASSWORD_REGEX = /^(?=.*\p{L})(?=.*\p{N}).{8,}$/u
 
     async function handleSubmit(e) {
         e.preventDefault()
+        if (cooldown > 0) return
         setError('')
         setSuccess('')
         setLoading(true)
 
         try {
-            // Validación Email General
             if (!email.trim() || !EMAIL_REGEX.test(email)) {
                 throw new Error('Por favor ingresa un email válido: ejemplo@correo.com')
             }
@@ -42,7 +43,6 @@ function UserAuth() {
                 await login(email, password)
                 navigate(from, { replace: true })
             } else {
-                // Validaciones de Registro
                 if (!nombre.trim() || nombre.length < 3) {
                     throw new Error('El nombre debe tener al menos 3 caracteres')
                 }
@@ -55,14 +55,44 @@ function UserAuth() {
                     throw new Error('Las contraseñas no coinciden')
                 }
 
-                await register(email, password, nombre)
-                setSuccess('¡Registro exitoso! Por favor revisa tu correo para verificar la cuenta.')
-                // No redirigir automáticamente para que lean el mensaje
+                const registration = await register(email, password, nombre)
+                if (registration?.requiresConfirmation) {
+                    setSuccess('Cuenta creada. Revisa tu correo y confirma la cuenta antes de iniciar sesión.')
+                } else {
+                    setSuccess('Cuenta creada correctamente. Ya puedes comenzar a usar RYO.')
+                    window.setTimeout(() => navigate(from, { replace: true }), 700)
+                }
             }
         } catch (err) {
             setError(err.message || 'Error de autenticación')
+            if (err.code === 'RATE_LIMITED') {
+                setCooldown(err.retryAfter || 45)
+                const cooldownTimer = window.setInterval(() => {
+                    setCooldown(previous => {
+                        if (previous <= 1) {
+                            window.clearInterval(cooldownTimer)
+                            return 0
+                        }
+                        return previous - 1
+                    })
+                }, 1000)
+            }
         } finally {
             setLoading(false)
+        }
+    }
+
+    async function handleResendConfirmation() {
+        setError('')
+        setSuccess('')
+        setResendLoading(true)
+        try {
+            await resendConfirmation(email)
+            setSuccess('Correo de confirmación reenviado. Revisa también la carpeta de spam.')
+        } catch (err) {
+            setError(err.message || 'No se pudo reenviar el correo')
+        } finally {
+            setResendLoading(false)
         }
     }
 
@@ -74,8 +104,8 @@ function UserAuth() {
 
             <div className="auth-container">
                 <Link to="/" className="auth-logo">
-                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Lou" />
-                    <span>Lou</span>
+                    <img src={`${import.meta.env.BASE_URL}images/logo123.jpg`} alt="Ryo" />
+                    <span>Ryo</span>
                 </Link>
 
                 <div className="auth-card">
@@ -128,7 +158,7 @@ function UserAuth() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder={mode === 'register' ? "Min. 8 caracteres" : "••••••••"}
                                 required
-                                minLength={6}
+                                minLength={8}
                             />
                         </div>
 
@@ -148,8 +178,14 @@ function UserAuth() {
                         {error && (
                             <div className="auth-error">
                                 <Icon name="warning" size={16} />
-                                {error}
+                                <span>{error}</span>
                             </div>
+                        )}
+
+                        {mode === 'login' && error.toLowerCase().includes('confirmado') && (
+                            <button type="button" className="auth-resend" onClick={handleResendConfirmation} disabled={resendLoading}>
+                                {resendLoading ? 'Enviando...' : 'Reenviar confirmación'}
+                            </button>
                         )}
 
                         {success && (
@@ -162,9 +198,9 @@ function UserAuth() {
                         <button
                             type="submit"
                             className="auth-submit"
-                            disabled={loading}
+                            disabled={loading || cooldown > 0}
                         >
-                            {loading ? 'Cargando...' : mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+                            {loading ? 'Cargando...' : cooldown > 0 ? `Espera ${cooldown}s` : mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
                         </button>
                     </form>
 

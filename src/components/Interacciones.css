@@ -1,8 +1,3 @@
-/* ============================================
-   INTERACCIONES - Reacciones y Comentarios
-   ============================================ */
-
-/* Reacciones */
 .reacciones {
     display: flex;
     gap: 8px;
@@ -56,7 +51,6 @@
     color: var(--color-primary);
 }
 
-/* Comentarios Toggle */
 .comentarios-section {
     margin-top: 16px;
 }
@@ -89,7 +83,6 @@
     transform: rotate(90deg);
 }
 
-/* Comentarios Content */
 .comentarios-content {
     margin-top: 12px;
     padding: 16px;
@@ -98,7 +91,6 @@
     border-radius: var(--radius-md);
 }
 
-/* Formulario */
 .comentario-form {
     display: flex;
     flex-direction: column;
@@ -174,7 +166,6 @@
     cursor: not-allowed;
 }
 
-/* Lista de Comentarios */
 .comentarios-lista {
     display: flex;
     flex-direction: column;
@@ -262,7 +253,6 @@
 
 .delete-comment-btn:hover {
     color: #ef4444;
-    /* Rojo */
     opacity: 1;
     background: rgba(239, 68, 68, 0.1);
 }
@@ -271,7 +261,6 @@
     color: var(--color-primary);
 }
 
-/* Panel Combinado */
 .interacciones-panel {
     display: flex;
     flex-direction: column;
@@ -281,7 +270,6 @@
     margin-top: 12px;
 }
 
-/* Login Prompt */
 .login-prompt-btn {
     display: flex;
     align-items: center;
@@ -339,7 +327,6 @@
     transform: translateY(-2px);
 }
 
-/* User Info in Form */
 .form-user-info {
     display: flex;
     align-items: center;
@@ -383,7 +370,6 @@
     border-color: var(--color-border);
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .reaccion-btn {
         padding: 6px 10px;

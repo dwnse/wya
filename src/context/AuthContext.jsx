@@ -9,10 +9,7 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Check current session
         checkUser()
-
-        // Listen for auth changes
         const { data: { subscription } } = onAuthStateChange(async (event) => {
             if (event === 'SIGNED_IN') {
                 await checkUser()

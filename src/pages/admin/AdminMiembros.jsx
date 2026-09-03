@@ -16,18 +16,16 @@ function AdminMiembros() {
     const [showModal, setShowModal] = useState(false)
     const [editando, setEditando] = useState(null)
     const [viewMode, setViewMode] = useState('cards')
-
-    // Filtros
     const [busqueda, setBusqueda] = useState('')
     const [filtroEstado, setFiltroEstado] = useState('todos')
 
     const [form, setForm] = useState({
-        nombre_usuario: '',
         nombre_mostrar: '',
+        minecraft_username: '',
+        fecha_ingreso: '',
+        estado_clan: 'activo',
         avatar_url: '',
-        banner_url: '',
-        biografia: '',
-        estado: 'activo'
+        banner_url: ''
     })
 
     useEffect(() => {
@@ -44,8 +42,6 @@ function AdminMiembros() {
             setLoading(false)
         }
     }
-
-    // Filtrar miembros
     const miembrosFiltrados = useMemo(() => {
         return miembros.filter(m => {
             const matchBusqueda = m.nombre_mostrar?.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -59,22 +55,22 @@ function AdminMiembros() {
         if (miembro) {
             setEditando(miembro)
             setForm({
-                nombre_usuario: miembro.nombre_usuario,
                 nombre_mostrar: miembro.nombre_mostrar,
+                minecraft_username: miembro.minecraft_username || '',
+                fecha_ingreso: miembro.fecha_ingreso || '',
+                estado_clan: miembro.estado_clan || 'activo',
                 avatar_url: miembro.avatar_url || '',
-                banner_url: miembro.banner_url || '',
-                biografia: miembro.biografia || '',
-                estado: miembro.estado
+                banner_url: miembro.banner_url || ''
             })
         } else {
             setEditando(null)
             setForm({
-                nombre_usuario: '',
                 nombre_mostrar: '',
+                minecraft_username: '',
+                fecha_ingreso: new Date().toLocaleDateString('en-CA'),
+                estado_clan: 'activo',
                 avatar_url: '',
-                banner_url: '',
-                biografia: '',
-                estado: 'activo'
+                banner_url: ''
             })
         }
         setShowModal(true)
@@ -83,10 +79,17 @@ function AdminMiembros() {
     async function handleSubmit(e) {
         e.preventDefault()
         try {
+            const datos = {
+                ...form,
+                nombre_mostrar: form.nombre_mostrar.trim(),
+                nombre_usuario: form.nombre_mostrar.trim(),
+                minecraft_username: form.minecraft_username.trim() || null,
+                fecha_ingreso: form.fecha_ingreso || null
+            }
             if (editando) {
-                await actualizarMiembro(editando.id, form)
+                await actualizarMiembro(editando.id, datos)
             } else {
-                await crearMiembro(form)
+                await crearMiembro(datos)
             }
             setShowModal(false)
             loadData()
@@ -121,7 +124,7 @@ function AdminMiembros() {
                 </button>
             </div>
 
-            {/* Filtros */}
+            {}
             <div className="crud-filters">
                 <div className="filter-search">
                     <Icon name="user" size={18} />
@@ -159,7 +162,7 @@ function AdminMiembros() {
                 </div>
             </div>
 
-            {/* Vista de Tarjetas */}
+            {}
             {viewMode === 'cards' && (
                 <div className="crud-cards">
                     {miembrosFiltrados.map(m => (
@@ -197,7 +200,7 @@ function AdminMiembros() {
                 </div>
             )}
 
-            {/* Vista de Tabla */}
+            {}
             {viewMode === 'table' && (
                 <div className="crud-table-wrapper">
                     <table className="crud-table">
@@ -248,7 +251,7 @@ function AdminMiembros() {
                 </div>
             )}
 
-            {/* Modal */}
+            {}
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
@@ -259,31 +262,36 @@ function AdminMiembros() {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form">
+                            <div className="form-group">
+                                <label>Nombre de usuario</label>
+                                <input
+                                    type="text"
+                                    value={form.nombre_mostrar}
+                                    onChange={e => setForm({ ...form, nombre_mostrar: e.target.value })}
+                                    placeholder="Nombre Visible"
+                                    required
+                                />
+                            </div>
+
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Nombre de usuario</label>
+                                    <label>Minecraft username</label>
                                     <input
                                         type="text"
-                                        value={form.nombre_usuario}
-                                        onChange={e => setForm({ ...form, nombre_usuario: e.target.value })}
-                                        placeholder="usuario123"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Nombre a mostrar</label>
-                                    <input
-                                        type="text"
-                                        value={form.nombre_mostrar}
-                                        onChange={e => setForm({ ...form, nombre_mostrar: e.target.value })}
-                                        placeholder="Nombre Visible"
-                                        required
+                                        value={form.minecraft_username}
+                                        onChange={e => setForm({ ...form, minecraft_username: e.target.value })}
+                                        placeholder="Steve"
+                                        maxLength={50}
                                     />
                                 </div>
                             </div>
+                            <div className="form-group">
+                                <label>Fecha de ingreso</label>
+                                <input type="date" value={form.fecha_ingreso} readOnly />
+                            </div>
 
                             <ImageUploader
-                                label="Avatar"
+                                label="Imagen de perfil"
                                 value={form.avatar_url}
                                 onChange={(url) => setForm({ ...form, avatar_url: url })}
                                 bucket="images"
@@ -291,33 +299,12 @@ function AdminMiembros() {
                             />
 
                             <ImageUploader
-                                label="Banner (opcional)"
+                                label="Banner del miembro"
                                 value={form.banner_url}
                                 onChange={(url) => setForm({ ...form, banner_url: url })}
                                 bucket="images"
                                 folder="banners"
                             />
-
-                            <div className="form-group">
-                                <label>Biografía</label>
-                                <textarea
-                                    value={form.biografia}
-                                    onChange={e => setForm({ ...form, biografia: e.target.value })}
-                                    placeholder="Breve descripción del miembro..."
-                                    rows={3}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Estado</label>
-                                <select
-                                    value={form.estado}
-                                    onChange={e => setForm({ ...form, estado: e.target.value })}
-                                >
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
-                                </select>
-                            </div>
 
                             <div className="modal-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>

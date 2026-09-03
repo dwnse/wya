@@ -17,7 +17,6 @@ function Login() {
         const stored = localStorage.getItem('admin_login_attempts')
         if (stored) {
             const { count, timestamp } = JSON.parse(stored)
-            // Resetear si pasaron 5 minutos
             if (Date.now() - timestamp > 5 * 60 * 1000) return 0
             return count
         }
@@ -34,8 +33,6 @@ function Login() {
             setError('Demasiados intentos fallidos. Por favor espere 5 minutos.')
             return
         }
-
-        // Validación estricta de formato
         const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!email.trim() || !EMAIL_REGEX.test(email)) {
             setError('Formato de email inválido')
@@ -52,21 +49,16 @@ function Login() {
         try {
             await login(email, password)
             await refreshUser()
-            // Éxito: Limpiar intentos
             localStorage.removeItem('admin_login_attempts')
             setAttempts(0)
             navigate('/admin')
         } catch (err) {
-            // Fallo: Incrementar intentos
             const newCount = attempts + 1
             setAttempts(newCount)
             localStorage.setItem('admin_login_attempts', JSON.stringify({
                 count: newCount,
                 timestamp: Date.now()
             }))
-
-            // Mensaje genérico por seguridad (aunque en dev sepamos qué es)
-            // err.message podría dar pistas, pero para "más seguridad" usamos genérico
             setError('Credenciales inválidas o acceso denegado')
         } finally {
             setLoading(false)
@@ -77,7 +69,7 @@ function Login() {
         <div className="login-page">
             <div className="login-card">
                 <div className="login-header">
-                    <h1>Lou</h1>
+                    <h1>Ryo</h1>
                     <p>Panel de Administración</p>
                 </div>
 
@@ -96,7 +88,7 @@ function Login() {
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="admin@lou.com"
+                            placeholder="admin@ryo.com"
                             required
                             disabled={loading}
                         />

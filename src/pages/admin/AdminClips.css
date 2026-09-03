@@ -3,10 +3,47 @@
 }
 
 .page-header {
+    position: relative;
+}
+
+.page-header > .btn-primary {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.manual-clip-panel {
+    max-width: 640px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+}
+
+.manual-clip-panel .form-group {
+    margin-bottom: 16px;
+}
+
+.manual-clip-panel input,
+.manual-clip-panel textarea {
+    width: 100%;
+    margin-top: 7px;
+    padding: 12px;
+    color: var(--color-text);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
+}
+
+.manual-clip-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.page-header {
     margin-bottom: 24px;
 }
 
-/* --- Filtros --- */
 .admin-filters {
     display: flex;
     gap: 12px;
@@ -52,7 +89,6 @@
     color: white;
 }
 
-/* --- Estados --- */
 .empty-admin-state {
     text-align: center;
     padding: 60px;
@@ -88,7 +124,6 @@
     border-color: var(--color-primary-dark);
 }
 
-/* Badges de estado en tarjeta */
 .clip-header {
     padding: 12px;
     border-bottom: 1px solid var(--color-border);
@@ -203,12 +238,10 @@
 .clip-actions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(1px, 1fr));
-    /* Auto fit columns */
     gap: 1px;
     margin-top: auto;
     background: var(--color-border);
-    /* Separador entre botones */
-}
+    }
 
 .btn-reject,
 .btn-approve,

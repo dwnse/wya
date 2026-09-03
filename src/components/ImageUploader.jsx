@@ -24,11 +24,8 @@ function ImageUploader({
         setUploading(true)
 
         try {
-            // Mostrar preview inmediato
             const previewUrl = await createImagePreview(file)
             setPreview(previewUrl)
-
-            // Subir a Supabase
             const publicUrl = await uploadImage(file, bucket, folder)
             onChange(publicUrl)
             setPreview(publicUrl)
