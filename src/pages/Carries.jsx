@@ -4,6 +4,7 @@ import Footer from '../components/Footer.jsx'
 import Loading from '../components/Loading.jsx'
 import ErrorMessage from '../components/ErrorMessage.jsx'
 import { Icon } from '../components/Icons.jsx'
+import { Link } from 'react-router-dom'
 import { useCarries } from '../hooks/useSupabase.js'
 import './Carries.css'
 
@@ -114,7 +115,7 @@ function Carries() {
                             </div>
 
                             <div className="carry-info">
-                                <h3>{carry.miembros?.nombre_mostrar}</h3>
+                                <h3><Link to={`/profile/${carry.miembros?.id}`}>{carry.miembros?.nombre_mostrar}</Link></h3>
 
                                 {carry.titulo && (
                                     <span className="carry-title">{carry.titulo}</span>

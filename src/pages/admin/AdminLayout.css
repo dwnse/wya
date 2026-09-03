@@ -135,6 +135,24 @@
     overflow-y: auto;
 }
 
+.menu-group {
+    display: grid;
+    gap: 4px;
+}
+
+.menu-group + .menu-group {
+    margin-top: 18px;
+}
+
+.menu-group-label {
+    padding: 0 18px 7px;
+    color: var(--color-text-muted);
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
 .sidebar-menu::-webkit-scrollbar {
     width: 4px;
 }
@@ -365,6 +383,16 @@
     .menu-item {
         justify-content: center;
         padding: 14px;
+    }
+
+    .menu-group-label {
+        display: none;
+    }
+
+    .menu-group + .menu-group {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--color-border);
     }
 
     .menu-item span {

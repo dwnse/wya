@@ -68,7 +68,7 @@ function Header() {
             </header>
 
         <nav className="mobile-nav" aria-label="Navegación móvil">
-                {navLinks.slice(0, 4).map(link => (
+                {navLinks.map(link => (
                     <Link
                         key={link.path}
                         to={link.path}

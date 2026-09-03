@@ -13,6 +13,14 @@ export const Icons = {
             <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
     ),
+    refresh: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 11a8.1 8.1 0 0 0-14.8-3L3 11" />
+            <path d="M3 4v7h7" />
+            <path d="M4 13a8.1 8.1 0 0 0 14.8 3L21 13" />
+            <path d="M21 20v-7h-7" />
+        </svg>
+    ),
     home: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />

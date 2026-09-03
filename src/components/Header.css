@@ -178,7 +178,7 @@
         z-index: 1001;
         height: 64px;
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         padding: 6px;
         background: rgba(16, 16, 16, 0.94);
         border: 1px solid rgba(255, 255, 255, 0.13);
@@ -187,7 +187,7 @@
     }
 
     .mobile-nav-link {
-        min-width: 44px;
+        min-width: 0;
         display: flex;
         flex-direction: column;
         align-items: center;

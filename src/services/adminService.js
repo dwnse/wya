@@ -75,6 +75,18 @@ export async function crearMiembro(datos) {
     return data
 }
 
+export async function obtenerUsuariosParaMiembro() {
+    const { data, error } = await supabase
+        .from('usuarios')
+        .select('id,nombre,email,auth_user_id')
+        .ilike('email', '%@gmail.com')
+        .eq('estado', 'activo')
+        .order('nombre')
+
+    if (error) throw error
+    return data
+}
+
 export async function actualizarMiembro(id, datos) {
     const { data, error } = await supabase
         .from('miembros')
@@ -231,6 +243,31 @@ export async function obtenerTodosMiembros() {
         .neq('estado', 'eliminado')
         .order('nombre_mostrar')
 
+    if (error) throw error
+    return data
+}
+
+export async function obtenerSolicitudesMiembro() {
+    const { data, error } = await supabase
+        .from('solicitudes_miembro')
+        .select('*, usuarios!solicitudes_miembro_usuario_id_fkey(id,nombre,email,avatar_url)')
+        .order('creado_en', { ascending: false })
+
+    if (error) throw error
+    return data
+}
+
+export async function aprobarSolicitudMiembro(id) {
+    const { data, error } = await supabase.rpc('aprobar_solicitud_miembro', { p_solicitud_id: id })
+    if (error) throw error
+    return data
+}
+
+export async function rechazarSolicitudMiembro(id, motivo = null) {
+    const { data, error } = await supabase.rpc('rechazar_solicitud_miembro', {
+        p_solicitud_id: id,
+        p_motivo: motivo
+    })
     if (error) throw error
     return data
 }

@@ -3,7 +3,8 @@ import { Icon } from '../../components/Icons'
 import {
     obtenerTodosMiembros,
     obtenerTodosClips,
-    obtenerTodosCarries
+    obtenerTodosCarries,
+    obtenerSolicitudesMiembro
 } from '../../services/adminService'
 import './Dashboard.css'
 
@@ -12,6 +13,7 @@ function Dashboard() {
         miembros: 0,
         clips: 0,
         carries: 0,
+        solicitudes: 0,
     })
     const [loading, setLoading] = useState(true)
 
@@ -21,16 +23,18 @@ function Dashboard() {
 
     async function loadStats() {
         try {
-            const [miembros, clips, carries] = await Promise.all([
+            const [miembros, clips, carries, solicitudes] = await Promise.all([
                 obtenerTodosMiembros(),
                 obtenerTodosClips(),
-                obtenerTodosCarries()
+                obtenerTodosCarries(),
+                obtenerSolicitudesMiembro()
             ])
 
             setStats({
                 miembros: miembros?.length || 0,
                 clips: clips?.length || 0,
-                carries: carries?.length || 0
+                carries: carries?.length || 0,
+                solicitudes: solicitudes?.filter(item => item.estado === 'pendiente').length || 0
             })
         } catch (error) {
             console.error('Error loading stats:', error)
@@ -43,6 +47,7 @@ function Dashboard() {
         { label: 'Miembros', value: stats.miembros, icon: 'user', color: '#3b82f6' },
         { label: 'Clips', value: stats.clips, icon: 'video', color: '#ef4444' },
         { label: 'Top Clan', value: stats.carries, icon: 'star', color: '#f59e0b' },
+        { label: 'Solicitudes pendientes', value: stats.solicitudes, icon: 'file', color: '#a855f7' },
     ]
 
     return (
@@ -82,6 +87,10 @@ function Dashboard() {
                     <a href="/admin/puntos" className="action-card">
                         <Icon name="target" size={24} />
                         <span>Asignar Puntos</span>
+                    </a>
+                    <a href={`${import.meta.env.BASE_URL}#/admin/solicitudes`} className="action-card">
+                        <Icon name="file" size={24} />
+                        <span>Revisar Solicitudes</span>
                     </a>
                 </div>
             </div>

@@ -32,14 +32,28 @@ function AdminLayout() {
         navigate('/admin/login')
     }
 
-    const menuItems = [
-        { path: '/admin', icon: 'home', label: 'Dashboard' },
-        { path: '/admin/miembros', icon: 'user', label: 'Miembros' },
-        { path: '/admin/puntos', icon: 'target', label: 'Puntos' },
-        { path: '/admin/eventos', icon: 'calendar', label: 'Eventos' },
-        { path: '/admin/clips', icon: 'video', label: 'Clips' },
-        { path: '/admin/carries', icon: 'star', label: 'Top Clan' },
-        { path: '/admin/usuarios', icon: 'user', label: 'Usuarios' },
+    const menuGroups = [
+        {
+            label: 'Resumen',
+            items: [{ path: '/admin', icon: 'home', label: 'Dashboard' }]
+        },
+        {
+            label: 'Comunidad',
+            items: [
+                { path: '/admin/solicitudes', icon: 'file', label: 'Solicitudes' },
+                { path: '/admin/miembros', icon: 'user', label: 'Miembros' },
+                { path: '/admin/usuarios', icon: 'user', label: 'Usuarios' }
+            ]
+        },
+        {
+            label: 'Contenido',
+            items: [
+                { path: '/admin/puntos', icon: 'target', label: 'Puntos' },
+                { path: '/admin/eventos', icon: 'calendar', label: 'Eventos' },
+                { path: '/admin/clips', icon: 'video', label: 'Clips' },
+                { path: '/admin/carries', icon: 'star', label: 'Top Clan' }
+            ]
+        }
     ]
 
     return (
@@ -85,16 +99,7 @@ function AdminLayout() {
                 </div>
 
                 <nav className="sidebar-menu">
-                    {menuItems.map(item => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`menu-item ${isActive(item.path) ? 'active' : ''}`}
-                        >
-                            <Icon name={item.icon} size={20} />
-                            <span>{item.label}</span>
-                        </Link>
-                    ))}
+                    {menuGroups.map(group => <div className="menu-group" key={group.label}><span className="menu-group-label">{group.label}</span>{group.items.map(item => <Link key={item.path} to={item.path} className={`menu-item ${isActive(item.path) ? 'active' : ''}`}><Icon name={item.icon} size={20} /><span>{item.label}</span></Link>)}</div>)}
                 </nav>
 
                 <div className="sidebar-footer">

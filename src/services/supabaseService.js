@@ -73,6 +73,11 @@ export async function obtenerClipsPorMiembro(miembroId) {
   )
   return data
 }
+export async function obtenerEventosPublicos() {
+  return await fetchSupabase('eventos',
+    'select=id,titulo,slug,descripcion,tipo,imagen_url,fecha_inicio,fecha_fin,ubicacion,estado&estado=eq.publicado&order=fecha_inicio.asc'
+  )
+}
 
 export async function obtenerCategoriasClips() {
   const data = await fetchSupabase('categorias_clips',
@@ -217,15 +222,6 @@ async function fetchSupabaseAuthenticated(method, table, body = null, query = ''
   return response.json()
 }
 
-export function getSessionId() {
-  let sessionId = localStorage.getItem('exo_session_id')
-  if (!sessionId) {
-    sessionId = 'sess_' + Math.random().toString(36).substring(2) + Date.now().toString(36)
-    localStorage.setItem('exo_session_id', sessionId)
-  }
-  return sessionId
-}
-
 export async function obtenerReacciones(tipoContenido, contenidoId, usuarioId = null) {
   const data = await fetchSupabase('reacciones',
     `select=emoji,usuario_id&tipo_contenido=eq.${tipoContenido}&contenido_id=eq.${contenidoId}`
@@ -258,8 +254,7 @@ export async function toggleReaccion(tipoContenido, contenidoId, emoji, usuarioI
       tipo_contenido: tipoContenido,
       contenido_id: contenidoId,
       emoji,
-      usuario_id: usuarioId,
-      session_id: getSessionId()
+      usuario_id: usuarioId
     })
     return { added: true }
   }
@@ -267,7 +262,7 @@ export async function toggleReaccion(tipoContenido, contenidoId, emoji, usuarioI
 
 export async function obtenerComentarios(tipoContenido, contenidoId) {
   const data = await fetchSupabase('comentarios',
-    `select=*,usuarios(nombre,avatar_url)&tipo_contenido=eq.${tipoContenido}&contenido_id=eq.${contenidoId}&estado=eq.activo&order=creado_en.desc`
+    `select=*,usuarios!comentarios_usuario_id_fkey(nombre,avatar_url)&tipo_contenido=eq.${tipoContenido}&contenido_id=eq.${contenidoId}&estado=eq.activo&order=creado_en.desc`
   )
   return data
 }
@@ -280,10 +275,9 @@ export async function crearComentario(tipoContenido, contenidoId, autor, conteni
     contenido_id: contenidoId,
     autor: autor.trim().substring(0, 50),
     contenido: contenido.trim().substring(0, 500),
-    usuario_id: usuarioId,
-    session_id: getSessionId()
+    usuario_id: usuarioId
   },
-    'select=*,usuarios(nombre,avatar_url)'
+    'select=*,usuarios!comentarios_usuario_id_fkey(nombre,avatar_url)'
   )
   return data?.[0]
 }

@@ -11,6 +11,7 @@ import UserAuth from './pages/UserAuth.jsx'
 import TierList from './pages/TierList.jsx'
 import Events from './pages/Events.jsx'
 import Profile from './pages/Profile.jsx'
+import MemberRequest from './pages/MemberRequest.jsx'
 import Login from './pages/admin/Login.jsx'
 import AdminLayout from './pages/admin/AdminLayout.jsx'
 import Dashboard from './pages/admin/Dashboard.jsx'
@@ -20,6 +21,7 @@ import AdminCarries from './pages/admin/AdminCarries.jsx'
 import AdminUsuarios from './pages/admin/AdminUsuarios.jsx'
 import AdminPuntos from './pages/admin/AdminPuntos.jsx'
 import AdminEventos from './pages/admin/AdminEventos.jsx'
+import AdminSolicitudes from './pages/admin/AdminSolicitudes.jsx'
 
 function App() {
     return (
@@ -33,6 +35,7 @@ function App() {
                     <Route path="/events" element={<Events />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/profile/:id" element={<Profile />} />
+                    <Route path="/solicitar-membresia" element={<MemberRequest />} />
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/carries" element={<Carries />} />
                     <Route path="/vetados" element={<Vetados />} />
@@ -55,6 +58,7 @@ function App() {
                         <Route path="clips" element={<AdminClips />} />
                         <Route path="carries" element={<AdminCarries />} />
                         <Route path="usuarios" element={<AdminUsuarios />} />
+                        <Route path="solicitudes" element={<AdminSolicitudes />} />
                     </Route>
                 </Routes>
             </UserAuthProvider>

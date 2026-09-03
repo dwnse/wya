@@ -8,33 +8,8 @@ import { InteraccionesPanel } from '../components/Interacciones.jsx'
 import { useClipsAgrupados, useMisClips } from '../hooks/useSupabase.js'
 import { useUserAuth } from '../context/UserAuthContext'
 import { crearClip } from '../services/supabaseService'
+import { getVideoData } from '../utils/videoData.js'
 import './Clips.css'
-function getVideoData(url) {
-    if (!url) return null
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-        let videoId = null
-        if (url.includes('youtube.com/embed/')) return { type: 'iframe', src: url }
-        if (url.includes('youtube.com/watch')) videoId = new URLSearchParams(new URL(url).search).get('v')
-        else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0]
-        else if (url.includes('youtube.com/shorts/')) videoId = url.split('shorts/')[1]?.split('?')[0]
-
-        if (videoId) return { type: 'iframe', src: `https://www.youtube.com/embed/${videoId}` }
-    }
-    if (url.includes('medal.tv')) {
-
-        let src = url
-        if (url.includes('/clips/')) {
-            src = url.replace('/clips/', '/clip/')
-        }
-        const symbol = src.includes('?') ? '&' : '?'
-        return { type: 'iframe', src: `${src}${symbol}autoplay=0&muted=0&loop=0&controls=1` }
-    }
-    if (url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.includes('cdn.discordapp.com')) {
-        return { type: 'video', src: url }
-    }
-
-    return null
-}
 
 function Clips() {
     const { user } = useUserAuth()

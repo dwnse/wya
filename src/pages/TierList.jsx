@@ -24,7 +24,6 @@ function TierList() {
             <main className="platform-main">
                 <div className="page-heading">
                     <div><span className="section-kicker">Competición / Ranking</span><h1>Tier List</h1><p>El mapa de progreso de la comunidad RYO.</p></div>
-                    <span className="heading-mark">01</span>
                 </div>
                 <div className="toolbar">
                     <label className="search-field"><Icon name="target" size={17} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar jugador" /></label>

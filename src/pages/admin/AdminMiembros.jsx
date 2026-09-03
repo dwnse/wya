@@ -6,7 +6,8 @@ import {
     obtenerTodosMiembros,
     crearMiembro,
     actualizarMiembro,
-    eliminarMiembro
+    eliminarMiembro,
+    obtenerUsuariosParaMiembro
 } from '../../services/adminService'
 import './AdminCrud.css'
 
@@ -18,8 +19,10 @@ function AdminMiembros() {
     const [viewMode, setViewMode] = useState('cards')
     const [busqueda, setBusqueda] = useState('')
     const [filtroEstado, setFiltroEstado] = useState('todos')
+    const [usuarios, setUsuarios] = useState([])
 
     const [form, setForm] = useState({
+        usuario_id: '',
         nombre_mostrar: '',
         minecraft_username: '',
         fecha_ingreso: '',
@@ -34,8 +37,9 @@ function AdminMiembros() {
 
     async function loadData() {
         try {
-            const data = await obtenerTodosMiembros()
+            const [data, userData] = await Promise.all([obtenerTodosMiembros(), obtenerUsuariosParaMiembro()])
             setMiembros(data || [])
+            setUsuarios(userData || [])
         } catch (error) {
             console.error('Error:', error)
         } finally {
@@ -55,6 +59,7 @@ function AdminMiembros() {
         if (miembro) {
             setEditando(miembro)
             setForm({
+                usuario_id: miembro.usuario_id || '',
                 nombre_mostrar: miembro.nombre_mostrar,
                 minecraft_username: miembro.minecraft_username || '',
                 fecha_ingreso: miembro.fecha_ingreso || '',
@@ -65,6 +70,7 @@ function AdminMiembros() {
         } else {
             setEditando(null)
             setForm({
+                usuario_id: '',
                 nombre_mostrar: '',
                 minecraft_username: '',
                 fecha_ingreso: new Date().toLocaleDateString('en-CA'),
@@ -86,6 +92,7 @@ function AdminMiembros() {
                 minecraft_username: form.minecraft_username.trim() || null,
                 fecha_ingreso: form.fecha_ingreso || null
             }
+            if (!editando && !datos.usuario_id) throw new Error('Debes vincular el miembro a un usuario Gmail existente')
             if (editando) {
                 await actualizarMiembro(editando.id, datos)
             } else {
@@ -262,6 +269,15 @@ function AdminMiembros() {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form">
+                            <div className="form-group">
+                                <label>Cuenta Gmail vinculada</label>
+                                <select value={form.usuario_id} onChange={e => setForm({ ...form, usuario_id: e.target.value })} required={!editando} disabled={!!editando}>
+                                    <option value="">Selecciona un usuario Gmail</option>
+                                    {usuarios.map(usuario => <option key={usuario.id} value={usuario.id}>{usuario.nombre} - {usuario.email}</option>)}
+                                </select>
+                                {!editando && <small>Solo puedes vincular cuentas Gmail ya registradas. La contraseña se gestiona desde el registro de usuario.</small>}
+                                {editando && <small>La cuenta vinculada no se puede cambiar desde la edición.</small>}
+                            </div>
                             <div className="form-group">
                                 <label>Nombre de usuario</label>
                                 <input
