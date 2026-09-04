@@ -9,6 +9,7 @@ const navLinks = [
     { path: '/clips', icon: 'video', label: 'Clips' },
     { path: '/carries', icon: 'user', label: 'Clan' },
     { path: '/events', icon: 'calendar', label: 'Eventos' }
+    , { path: '/actividad', icon: 'file', label: 'Actividad' }
 ]
 
 function Header() {

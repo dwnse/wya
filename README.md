@@ -23,6 +23,21 @@ WYA is a minimalist web application designed specifically for the WYA clan and i
 
 Simply open the web application in a browser. Click on the WYA text to be redirected to the Discord server.
 
+## Supabase community features
+
+Apply the SQL migrations in `supabase/migrations` in order. Migration `012_comunidad_y_cache.sql` creates the Minecraft cache, challenges, activity feed, votes and Discord configuration tables. Migration `013_etiquetas_ranking.sql` enables member category tags and tier voting policies.
+
+To enable Discord announcements, create a webhook in the target Discord channel and configure it as a Supabase Edge Function secret. The webhook URL must never be added to frontend environment variables.
+
+```bash
+npx supabase login
+npx supabase link --project-ref TU_PROJECT_REF
+npx supabase secrets set DISCORD_WEBHOOK_URL="WEBHOOK_NUEVO"
+npx supabase functions deploy discord-announcement --no-verify-jwt
+```
+
+The function validates the authenticated user's admin role before posting announcements for approved clips and published events.
+
 ## Contributing
 
 We welcome contributions to the WYA project! If you have suggestions for improvements or bug fixes, please follow these steps:

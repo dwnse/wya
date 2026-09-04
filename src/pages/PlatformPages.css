@@ -33,6 +33,19 @@
 .profile-hero { display: flex; align-items: center; gap: 18px; padding: 26px 0; border-bottom: 1px solid var(--color-border); }
 .profile-avatar-large { width: 82px; height: 82px; display: grid; place-items: center; overflow: hidden; color: var(--color-primary); background: rgba(240,90,71,.1); border: 1px solid var(--color-primary); border-radius: 50%; }
 .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
+.profile-category-editor { margin-top: 20px; }
+.profile-category-editor p { color: var(--color-text-muted); margin: 0 0 14px; }
+.category-checkboxes { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 16px; }
+.category-checkboxes label { display: inline-flex; align-items: center; gap: 7px; color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+.category-checkboxes input { accent-color: var(--color-primary); }
+.profile-category-editor > small { display: block; margin-top: 10px; color: var(--color-text-muted); }
+.player-tags, .carry-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.player-tags em, .carry-tags span { border: 1px solid; border-radius: 999px; padding: 1px 6px; color: var(--color-text-muted); font-size: .65rem; font-style: normal; }
+.tier-votes { margin-top: 20px; }
+.tier-votes p { color: var(--color-text-muted); margin: 0 0 14px; }
+.tier-vote-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.tier-vote-actions button { border: 1px solid var(--color-border); background: var(--color-bg-secondary); color: var(--color-text-secondary); padding: 9px 12px; cursor: pointer; }
+.tier-vote-actions button.selected { border-color: var(--color-primary); color: var(--color-primary); }
 .profile-identity { flex: 1; }
 .profile-identity h1 { margin: 7px 0 0; font: 700 clamp(2rem,5vw,3.5rem)/1 var(--font-display); }
 .profile-identity p { color: var(--color-text-secondary); }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Icon } from '../../components/Icons.jsx'
 import Loading from '../../components/Loading.jsx'
 import { asignarPuntosMiembro, obtenerCategoriasPuntosAdmin, obtenerTodosMiembros } from '../../services/adminService.js'
+import { notificarDiscord } from '../../services/supabaseService.js'
 import './AdminPuntos.css'
 
 function AdminPuntos() {
@@ -34,6 +35,8 @@ function AdminPuntos() {
         try {
             const result = await asignarPuntosMiembro(form)
             setFeedback({ type: 'success', text: `Movimiento aplicado: ${result?.cantidad_aplicada ?? form.cantidad} puntos. Total: ${result?.puntos_totales ?? 'actualizado'}.` })
+            const member = miembros.find(item => item.id === form.miembro_id)
+            await notificarDiscord({ title: 'Actualización del Top Clan', description: `${member?.nombre_mostrar || 'Un miembro'} ahora tiene ${result?.puntos_totales ?? 'nuevos'} puntos.`, color: 0xF2C14E }).catch(console.warn)
             setForm(current => ({ ...current, cantidad: '', motivo: '' }))
         } catch (error) {
             setFeedback({ type: 'error', text: error.message || 'No se pudo aplicar el movimiento.' })

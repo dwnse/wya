@@ -9,6 +9,7 @@ import {
     eliminarMiembro,
     obtenerUsuariosParaMiembro
 } from '../../services/adminService'
+import { getLocalDateInputValue } from '../../utils/dateDefaults'
 import './AdminCrud.css'
 
 function AdminMiembros() {
@@ -73,7 +74,7 @@ function AdminMiembros() {
                 usuario_id: '',
                 nombre_mostrar: '',
                 minecraft_username: '',
-                fecha_ingreso: new Date().toLocaleDateString('en-CA'),
+                fecha_ingreso: getLocalDateInputValue(),
                 estado_clan: 'activo',
                 avatar_url: '',
                 banner_url: ''

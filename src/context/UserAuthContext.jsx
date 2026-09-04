@@ -154,10 +154,10 @@ export function UserAuthProvider({ children }) {
         }
     }
 
-    async function register(email, password, nombre) {
+    async function register(email, password) {
         email = email.trim().toLowerCase()
         if (!email.endsWith('@gmail.com')) throw new Error('Debes registrarte con un correo Gmail')
-        nombre = nombre.trim().replace(/\s+/g, ' ').slice(0, 50)
+        const nombre = email.split('@')[0].replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 50) || 'Usuario'
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 

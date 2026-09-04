@@ -42,7 +42,9 @@ function AdminLayout() {
             items: [
                 { path: '/admin/solicitudes', icon: 'file', label: 'Solicitudes' },
                 { path: '/admin/miembros', icon: 'user', label: 'Miembros' },
-                { path: '/admin/usuarios', icon: 'user', label: 'Usuarios' }
+                { path: '/admin/usuarios', icon: 'user', label: 'Usuarios' },
+                { path: '/admin/actividad', icon: 'calendar', label: 'Actividad' },
+                { path: '/admin/desafios', icon: 'target', label: 'Desafíos' }
             ]
         },
         {
@@ -51,7 +53,9 @@ function AdminLayout() {
                 { path: '/admin/puntos', icon: 'target', label: 'Puntos' },
                 { path: '/admin/eventos', icon: 'calendar', label: 'Eventos' },
                 { path: '/admin/clips', icon: 'video', label: 'Clips' },
-                { path: '/admin/carries', icon: 'star', label: 'Top Clan' }
+                { path: '/admin/carries', icon: 'star', label: 'Top Clan' },
+                { path: '/admin/votos', icon: 'trophy', label: 'Votos Tier' },
+                { path: '/admin/discord', icon: 'externalLink', label: 'Discord' }
             ]
         }
     ]
@@ -103,7 +107,7 @@ function AdminLayout() {
                 </nav>
 
                 <div className="sidebar-footer">
-                    <a href="/" target="_blank" className="back-app-btn">
+                    <a href="https://dwnse.github.io/wya/" target="_blank" rel="noopener noreferrer" className="back-app-btn">
                         <Icon name="externalLink" size={18} />
                         <span>Ir a la App</span>
                     </a>

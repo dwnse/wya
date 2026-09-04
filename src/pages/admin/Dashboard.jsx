@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '../../components/Icons'
 import {
-    obtenerTodosMiembros,
-    obtenerTodosClips,
     obtenerTodosCarries,
     obtenerSolicitudesMiembro
 } from '../../services/adminService'
+import { obtenerEstadisticasClan } from '../../services/supabaseService'
 import './Dashboard.css'
 
 function Dashboard() {
@@ -23,16 +22,15 @@ function Dashboard() {
 
     async function loadStats() {
         try {
-            const [miembros, clips, carries, solicitudes] = await Promise.all([
-                obtenerTodosMiembros(),
-                obtenerTodosClips(),
+            const [summary, carries, solicitudes] = await Promise.all([
+                obtenerEstadisticasClan(),
                 obtenerTodosCarries(),
                 obtenerSolicitudesMiembro()
             ])
 
             setStats({
-                miembros: miembros?.length || 0,
-                clips: clips?.length || 0,
+                miembros: summary?.miembros_activos || 0,
+                clips: summary?.clips_publicados || 0,
                 carries: carries?.length || 0,
                 solicitudes: solicitudes?.filter(item => item.estado === 'pendiente').length || 0
             })

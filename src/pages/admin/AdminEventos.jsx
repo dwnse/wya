@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react'
 import { Icon } from '../../components/Icons.jsx'
 import Loading from '../../components/Loading.jsx'
 import { actualizarEvento, crearEvento, eliminarEvento, obtenerEventosAdmin } from '../../services/adminService.js'
+import { getLocalDateTimeInputValue } from '../../utils/dateDefaults.js'
+import { notificarDiscord } from '../../services/supabaseService.js'
 import './AdminEventos.css'
 
-const emptyEvent = { titulo: '', slug: '', descripcion: '', tipo: 'PvP', fecha_inicio: '', fecha_fin: '', ubicacion: '', estado: 'borrador' }
+function createEmptyEvent() {
+    return { titulo: '', slug: '', descripcion: '', tipo: 'PvP', fecha_inicio: getLocalDateTimeInputValue(), fecha_fin: getLocalDateTimeInputValue(), ubicacion: '', estado: 'borrador' }
+}
 
 function AdminEventos() {
     const [events, setEvents] = useState([])
-    const [form, setForm] = useState(emptyEvent)
+    const [form, setForm] = useState(createEmptyEvent())
     const [editing, setEditing] = useState(null)
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(true)
@@ -22,7 +26,7 @@ function AdminEventos() {
 
     function startEvent(event = null) {
         setEditing(event)
-        setForm(event ? { ...event, fecha_inicio: event.fecha_inicio?.slice(0, 16), fecha_fin: event.fecha_fin?.slice(0, 16) || '' } : emptyEvent)
+        setForm(event ? { ...event, fecha_inicio: event.fecha_inicio?.slice(0, 16), fecha_fin: event.fecha_fin?.slice(0, 16) || '' } : createEmptyEvent())
         setOpen(true)
         setError('')
     }
@@ -34,6 +38,9 @@ function AdminEventos() {
             const payload = { ...form, slug: form.slug.trim() || form.titulo.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''), fecha_fin: form.fecha_fin || null }
             if (editing) await actualizarEvento(editing.id, payload)
             else await crearEvento(payload)
+            if (payload.estado === 'publicado') {
+                await notificarDiscord({ title: 'Nuevo evento publicado', description: `${payload.titulo}${payload.ubicacion ? ` · ${payload.ubicacion}` : ''}`, color: 0xF2C14E }).catch(console.warn)
+            }
             setOpen(false); await loadEvents()
         } catch (err) { setError(err.message) } finally { setSaving(false) }
     }

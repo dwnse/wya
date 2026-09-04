@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import Loading from '../components/Loading.jsx'
@@ -6,12 +6,21 @@ import ErrorMessage from '../components/ErrorMessage.jsx'
 import { Icon } from '../components/Icons.jsx'
 import { Link } from 'react-router-dom'
 import { useCarries } from '../hooks/useSupabase.js'
+import { obtenerEtiquetasMiembros } from '../services/supabaseService.js'
 import './Carries.css'
 
 function Carries() {
     const { data: carries, loading, error, refetch } = useCarries()
     const [busqueda, setBusqueda] = useState('')
     const [filtroDestacado, setFiltroDestacado] = useState('todos')
+    const [memberTags, setMemberTags] = useState({})
+    useEffect(() => {
+        obtenerEtiquetasMiembros().then(tags => setMemberTags(tags.reduce((result, tag) => {
+            if (!result[tag.miembro_id]) result[tag.miembro_id] = []
+            if (tag.categorias_puntos) result[tag.miembro_id].push(tag.categorias_puntos)
+            return result
+        }, {}))).catch(() => setMemberTags({}))
+    }, [])
     const carriesFiltrados = useMemo(() => {
         if (!carries) return []
 
@@ -131,6 +140,10 @@ function Carries() {
                                             {rm.roles?.nombre}
                                         </span>
                                     ))}
+                                </div>
+
+                                <div className="carry-tags">
+                                    {(memberTags[carry.miembros?.id] || []).map(tag => <span key={tag.id} style={{ borderColor: tag.color || 'var(--color-primary)' }}>{tag.nombre}</span>)}
                                 </div>
 
                                 {carry.especialidad && (

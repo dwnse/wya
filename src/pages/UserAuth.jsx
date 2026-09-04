@@ -9,7 +9,6 @@ function UserAuth() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
-    const [nombre, setNombre] = useState('')
     const [loading, setLoading] = useState(false)
     const [resendLoading, setResendLoading] = useState(false)
     const [cooldown, setCooldown] = useState(0)
@@ -43,10 +42,6 @@ function UserAuth() {
                 await login(email, password)
                 navigate(from, { replace: true })
             } else {
-                if (!nombre.trim() || nombre.length < 3) {
-                    throw new Error('El nombre debe tener al menos 3 caracteres')
-                }
-
                 if (!PASSWORD_REGEX.test(password)) {
                     throw new Error('La contraseña debe tener al menos 8 caracteres, incluir una letra y un número.')
                 }
@@ -55,7 +50,7 @@ function UserAuth() {
                     throw new Error('Las contraseñas no coinciden')
                 }
 
-                const registration = await register(email, password, nombre)
+                const registration = await register(email, password)
                 if (registration?.requiresConfirmation) {
                     setSuccess('Cuenta creada. Revisa tu correo y confirma la cuenta antes de iniciar sesión.')
                 } else {
@@ -125,20 +120,6 @@ function UserAuth() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="auth-form">
-                        {mode === 'register' && (
-                            <div className="form-group">
-                                <label>Nombre</label>
-                                <input
-                                    type="text"
-                                    value={nombre}
-                                    onChange={(e) => setNombre(e.target.value)}
-                                    placeholder="Tu nombre de usuario"
-                                    required
-                                    maxLength={50}
-                                />
-                            </div>
-                        )}
-
                         <div className="form-group">
                             <label>Email</label>
                             <input

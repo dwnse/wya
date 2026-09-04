@@ -37,6 +37,19 @@ export async function obtenerMiembrosTier() {
   )
 }
 
+export async function obtenerEtiquetasMiembros() {
+  const { data: tags, error: tagsError } = await supabase
+    .from('etiquetas_miembro')
+    .select('miembro_id,categoria_id')
+  if (tagsError) throw tagsError
+  const categories = await obtenerCategoriasPuntos()
+  const categoriesById = Object.fromEntries(categories.map(category => [category.id, category]))
+  return (tags || []).map(tag => ({
+    miembro_id: tag.miembro_id,
+    categorias_puntos: categoriesById[tag.categoria_id] || null
+  })).filter(tag => tag.categorias_puntos)
+}
+
 export async function obtenerEstadisticasClan() {
   const data = await fetchSupabase('vista_estadisticas_clan', 'select=*&limit=1')
   return data?.[0] || null
@@ -46,6 +59,39 @@ export async function obtenerPuntosPorCategoria(miembroId) {
   return await fetchSupabase('vista_puntos_por_categoria',
     `select=*&miembro_id=eq.${encodeURIComponent(miembroId)}&order=puntos.desc`
   )
+}
+
+export async function obtenerCategoriasPuntos() {
+  return await fetchSupabase('categorias_puntos', 'select=id,nombre,slug,color&estado=eq.activo&order=orden')
+}
+
+export async function obtenerEtiquetasMiembro(miembroId) {
+  const { data, error } = await supabase
+    .from('etiquetas_miembro')
+    .select('categoria_id')
+    .eq('miembro_id', miembroId)
+  if (error) throw error
+  return data?.map(item => item.categoria_id) || []
+}
+
+export async function guardarEtiquetasMiembro(miembroId, categoriaIds) {
+  const { error: deleteError } = await supabase
+    .from('etiquetas_miembro')
+    .delete()
+    .eq('miembro_id', miembroId)
+  if (deleteError) throw deleteError
+
+  if (!categoriaIds.length) return []
+  const { data, error } = await supabase
+    .from('etiquetas_miembro')
+    .insert(categoriaIds.map(categoria_id => ({ miembro_id: miembroId, categoria_id })))
+    .select('categoria_id')
+  if (error) throw error
+  return data?.map(item => item.categoria_id) || []
+}
+
+export async function obtenerRankingCategoria(categoriaId) {
+  return await fetchSupabase('vista_ranking_categorias', `select=*&categoria_id=eq.${encodeURIComponent(categoriaId)}&etiquetado=eq.true&order=puntos.desc,nombre_mostrar`)
 }
 
 export async function obtenerProgresoMiembro(miembroId) {
@@ -77,6 +123,67 @@ export async function obtenerEventosPublicos() {
   return await fetchSupabase('eventos',
     'select=id,titulo,slug,descripcion,tipo,imagen_url,fecha_inicio,fecha_fin,ubicacion,estado&estado=eq.publicado&order=fecha_inicio.asc'
   )
+}
+
+export async function obtenerDesafiosActivos() {
+  return await fetchSupabase('desafios_activos', 'select=*&estado=eq.activo&inicia_en=lte.now&termina_en=gte.now&order=termina_en')
+}
+
+export async function obtenerActividadFeed() {
+  return await fetchSupabase('actividad_feed', 'select=*,miembros(nombre_mostrar,avatar_url)&order=creado_en.desc&limit=30')
+}
+
+export async function obtenerDesafiosAdmin() {
+  return await fetchSupabaseAuthenticated('GET', 'desafios_activos', null, 'select=*&order=creado_en.desc')
+}
+
+export async function crearDesafio(desafio) {
+  const { data, error } = await supabase
+    .from('desafios_activos')
+    .insert(desafio)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function crearActividad(actividad) {
+  const { data, error } = await supabase
+    .from('actividad_feed')
+    .insert(actividad)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function obtenerVotosTier(miembroId, usuarioId = null) {
+  const { data, error } = await supabase
+    .from('votos_tier')
+    .select('voto,usuario_id')
+    .eq('miembro_id', miembroId)
+  if (error) throw error
+  return {
+    positivos: data?.filter(item => item.voto === 1).length || 0,
+    negativos: data?.filter(item => item.voto === -1).length || 0,
+    propio: data?.find(item => item.usuario_id === usuarioId)?.voto || 0
+  }
+}
+
+export async function votarTier(miembroId, usuarioId, voto) {
+  const { error } = await supabase
+    .from('votos_tier')
+    .upsert({ miembro_id: miembroId, usuario_id: usuarioId, voto }, { onConflict: 'miembro_id,usuario_id' })
+  if (error) throw error
+}
+
+export async function notificarDiscord({ title, description, url, color }) {
+  const { data, error } = await supabase.functions.invoke('discord-announcement', {
+    body: { title, description, url, color, siteUrl: 'https://dwnse.github.io/wya/' }
+  })
+  if (error) throw error
+  if (data?.error) throw new Error(data.error)
+  return data
 }
 
 export async function obtenerCategoriasClips() {

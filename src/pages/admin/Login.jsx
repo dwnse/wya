@@ -112,7 +112,7 @@ function Login() {
                     </button>
                 </form>
 
-                <a href="/" className="back-link">
+                <a href="https://dwnse.github.io/wya/#/" className="back-link">
                     <Icon name="chevronRight" size={16} style={{ transform: 'rotate(180deg)' }} />
                     Volver al sitio
                 </a>

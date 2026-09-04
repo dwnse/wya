@@ -3,9 +3,12 @@ import { Icon } from '../../components/Icons'
 import Loading from '../../components/Loading'
 import {
     aprobarSolicitudMiembro,
+    actualizarMiembro,
+    obtenerTodosMiembros,
     obtenerSolicitudesMiembro,
     rechazarSolicitudMiembro
 } from '../../services/adminService'
+import { consultarPerfilMinecraft, obtenerAvatarMinecraft } from '../../services/minecraftService.js'
 import './AdminSolicitudes.css'
 
 function AdminSolicitudes() {
@@ -33,7 +36,20 @@ function AdminSolicitudes() {
     async function aprobar(id) {
         try {
             setProcesando(id)
-            await aprobarSolicitudMiembro(id)
+            const solicitudAprobada = await aprobarSolicitudMiembro(id)
+            const perfilMinecraft = await consultarPerfilMinecraft(solicitudAprobada.minecraft_username)
+            const miembros = await obtenerTodosMiembros()
+            const miembro = miembros.find(item => item.usuario_id === solicitudAprobada.usuario_id)
+            if (miembro) {
+                await actualizarMiembro(miembro.id, {
+                    avatar_url: obtenerAvatarMinecraft(solicitudAprobada.minecraft_username, perfilMinecraft),
+                    minecraft_uuid: perfilMinecraft.found ? perfilMinecraft.uuid : null,
+                    minecraft_skin_url: perfilMinecraft.skin,
+                    minecraft_skin_model: perfilMinecraft.model || 'classic',
+                    minecraft_es_premium: Boolean(perfilMinecraft.found),
+                    minecraft_skin_actualizada_en: new Date().toISOString()
+                })
+            }
             setSolicitudes(current => current.map(item => item.id === id
                 ? { ...item, estado: 'aprobada' }
                 : item))

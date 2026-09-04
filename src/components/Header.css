@@ -205,6 +205,20 @@
         color: #f05a47;
         background: rgba(240, 90, 71, 0.09);
     }
+
+    .mobile-nav {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .mobile-nav-link span {
+        display: none;
+    }
+
+    .mobile-nav-link .icon {
+        display: inline-flex;
+        width: 22px;
+        height: 22px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

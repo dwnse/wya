@@ -1,3 +1,14 @@
+const fallbackSkin = 'https://mc-heads.net/skin/Steve'
+const defaultMinecraftAvatar = 'https://mc-heads.net/avatar/Steve/128'
+
+export function obtenerAvatarMinecraft(username, profile) {
+    if (!profile?.found) return defaultMinecraftAvatar
+    const currentName = profile.name || username?.trim()
+    return currentName
+        ? `https://mc-heads.net/avatar/${encodeURIComponent(currentName)}/128`
+        : defaultMinecraftAvatar
+}
+
 export async function consultarPerfilMinecraft(username) {
     const cleanUsername = username?.trim()
     if (!cleanUsername) return { found: false, premium: false, code: 'NO_USERNAME', skin: fallbackSkin, model: 'classic', cape: null, capes: [] }
@@ -45,6 +56,23 @@ export async function consultarPerfilMinecraft(username) {
         premium: false,
         skin: fallbackSkin,
         model: 'classic',
+        cape: null,
+        capes: []
+    }
+}
+
+export function perfilMinecraftEnCache(member) {
+    if (!member?.minecraft_skin_actualizada_en || !member.minecraft_skin_url) return null
+    const age = Date.now() - new Date(member.minecraft_skin_actualizada_en).getTime()
+    if (age < 0 || age >= 24 * 60 * 60 * 1000) return null
+    return {
+        found: member.minecraft_es_premium,
+        premium: member.minecraft_es_premium,
+        code: member.minecraft_es_premium ? 'CACHED' : 'NOT_FOUND',
+        name: member.minecraft_es_premium ? member.minecraft_username : null,
+        uuid: member.minecraft_uuid,
+        skin: member.minecraft_skin_url,
+        model: member.minecraft_skin_model || 'classic',
         cape: null,
         capes: []
     }

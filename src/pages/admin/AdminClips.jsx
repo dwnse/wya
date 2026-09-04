@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { obtenerTodosClipsAdmin, actualizarEstadoClip } from '../../services/supabaseService'
+import { obtenerTodosClipsAdmin, actualizarEstadoClip, notificarDiscord } from '../../services/supabaseService'
 import { crearClipManual } from '../../services/adminService'
 import Loading from '../../components/Loading'
 import ErrorMessage from '../../components/ErrorMessage'
@@ -40,6 +40,10 @@ function AdminClips() {
         try {
             setActionLoading(id)
             await actualizarEstadoClip(id, nuevoEstado)
+            const clip = allClips.find(item => item.id === id)
+            if (nuevoEstado === 'aprobado' && clip) {
+                await notificarDiscord({ title: 'Nuevo clip aprobado', description: `${clip.usuarios?.nombre || 'Un miembro'} publico: ${clip.titulo}`, url: clip.youtube_url, color: 0xE53935 }).catch(console.warn)
+            }
             setAllClips(prev => prev.map(c =>
                 c.id === id ? { ...c, estado: nuevoEstado } : c
             ))

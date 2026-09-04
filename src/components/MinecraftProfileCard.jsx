@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { SkinViewer } from 'skinview3d'
 import { Icon } from './Icons.jsx'
-import { consultarPerfilMinecraft } from '../services/minecraftService.js'
+import { consultarPerfilMinecraft, perfilMinecraftEnCache } from '../services/minecraftService.js'
 
 // Función auxiliar para obtener la URL de la capa
 function getCapeTextureUrl(cape, profile) {
@@ -88,7 +88,7 @@ function CapeViewer({ cape, profile }) {
     )
 }
 
-function MinecraftProfileCard({ username }) {
+function MinecraftProfileCard({ username, fallbackName = 'Jugador', cachedMember, onAvatarChange }) {
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(Boolean(username))
     const canvasRef = useRef(null)
@@ -116,30 +116,46 @@ function MinecraftProfileCard({ username }) {
         let active = true
         if (!username) {
             setProfile({ found: false, premium: false, skin: 'https://mc-heads.net/skin/Steve', model: 'classic', cape: null, capes: [] })
+            onAvatarChange?.('https://mc-heads.net/avatar/Steve/128')
+            setLoading(false)
+            return undefined
+        }
+
+        const cachedProfile = perfilMinecraftEnCache(cachedMember)
+        if (cachedProfile) {
+            setProfile(cachedProfile)
+            onAvatarChange?.(cachedProfile.found
+                ? `https://mc-heads.net/avatar/${encodeURIComponent(cachedProfile.name || username.trim())}/128`
+                : 'https://mc-heads.net/avatar/Steve/128')
             setLoading(false)
             return undefined
         }
 
         setLoading(true)
         consultarPerfilMinecraft(username).then(data => {
-            if (active) setProfile(data)
+            if (active) {
+                setProfile(data)
+                onAvatarChange?.(data.found
+                    ? `https://mc-heads.net/avatar/${encodeURIComponent(data.name || username.trim())}/128`
+                    : 'https://mc-heads.net/avatar/Steve/128')
+            }
         }).finally(() => {
             if (active) setLoading(false)
         })
 
         return () => { active = false }
-    }, [username])
+    }, [username, cachedMember, onAvatarChange])
 
     return (
         <section className="minecraft-profile-card profile-panel">
             <div className="panel-title"><span>Perfil Minecraft Java</span><Icon name="skull" size={17} /></div>
             {loading ? <div className="minecraft-profile-loading">Consultando perfil Premium...</div> : <div className="minecraft-profile-content">
                 <div className="minecraft-profile-main">
-                    <div className="minecraft-skin-frame"><canvas ref={canvasRef} aria-label={`Skin 3D de ${profile?.name || 'Steve'}`} /></div>
+                    <div className="minecraft-skin-frame"><canvas ref={canvasRef} aria-label={`Avatar 3D de ${profile?.name || fallbackName}`} /></div>
                     <div className="minecraft-profile-data">
-                        <div><span>Estado</span><strong className={profile?.found ? 'minecraft-online' : 'minecraft-missing'}>{profile?.found ? 'Premium on' : profile?.code === 'NOT_FOUND' ? 'Premium off' : 'No se pudo verificar el perfil'}</strong></div>
+                        <div><span>Estado</span><strong className={profile?.found ? 'minecraft-online' : 'minecraft-missing'}>{profile?.found ? 'Premium on' : 'Premium off'}</strong></div>
+                        <div><span>Nombre actual</span><strong>{profile?.found ? profile.name : fallbackName}</strong></div>
                         {profile?.found && <>
-                            <div><span>Nombre actual</span><strong>{profile.name}</strong></div>
                             <div><span>UUID</span><strong className="minecraft-uuid">{profile.uuid}</strong></div>
                             {activeCape && <div className="minecraft-profile-cape">
                                 <span>Capa</span>
