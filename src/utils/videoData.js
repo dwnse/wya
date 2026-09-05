@@ -29,10 +29,7 @@ export function getVideoData(url) {
         const clipId = clipIndex >= 0 ? segments[clipIndex + 1] : null
 
         if (clipId) {
-            return {
-                type: 'iframe',
-                src: `https://medal.tv/clip/${encodeURIComponent(clipId)}?autoplay=0&muted=0&loop=0&controls=1`
-            }
+            return { type: 'external', src: url }
         }
 
         return null

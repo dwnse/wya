@@ -9,6 +9,7 @@ function AdminLayout() {
     const location = useLocation()
     const navigate = useNavigate()
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [expandedGroups, setExpandedGroups] = useState(() => ({ Resumen: true, Comunidad: true, Contenido: true }))
     useEffect(() => {
         setSidebarOpen(false)
     }, [location.pathname])
@@ -30,6 +31,10 @@ function AdminLayout() {
     const handleLogout = async () => {
         await logout()
         navigate('/admin/login')
+    }
+
+    const toggleGroup = (label) => {
+        setExpandedGroups(current => ({ ...current, [label]: !current[label] }))
     }
 
     const menuGroups = [
@@ -103,7 +108,7 @@ function AdminLayout() {
                 </div>
 
                 <nav className="sidebar-menu">
-                    {menuGroups.map(group => <div className="menu-group" key={group.label}><span className="menu-group-label">{group.label}</span>{group.items.map(item => <Link key={item.path} to={item.path} className={`menu-item ${isActive(item.path) ? 'active' : ''}`}><Icon name={item.icon} size={20} /><span>{item.label}</span></Link>)}</div>)}
+                    {menuGroups.map(group => <div className={`menu-group ${expandedGroups[group.label] ? 'expanded' : 'collapsed'}`} key={group.label}><button className="menu-group-toggle" type="button" onClick={() => toggleGroup(group.label)} aria-expanded={expandedGroups[group.label]}><span className="menu-group-label">{group.label}</span><Icon name="chevronRight" size={15} /></button>{expandedGroups[group.label] && <div className="menu-group-items">{group.items.map(item => <Link key={item.path} to={item.path} className={`menu-item ${isActive(item.path) ? 'active' : ''}`}><Icon name={item.icon} size={20} /><span>{item.label}</span></Link>)}</div>}</div>)}
                 </nav>
 
                 <div className="sidebar-footer">

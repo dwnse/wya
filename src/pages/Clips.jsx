@@ -22,6 +22,7 @@ function Clips() {
     const [showUploadModal, setShowUploadModal] = useState(false)
     const [uploadForm, setUploadForm] = useState({ youtube_url: '', titulo: '', descripcion: '' })
     const [uploadStatus, setUploadStatus] = useState('idle')
+    const [uploadError, setUploadError] = useState('')
     const [uploadCooldown, setUploadCooldown] = useState(0)
 
     useEffect(() => {
@@ -36,6 +37,7 @@ function Clips() {
 
         try {
             setUploadStatus('loading')
+            setUploadError('')
             await crearClip({
                 ...uploadForm,
                 usuario_id: user.id
@@ -50,6 +52,7 @@ function Clips() {
         } catch (err) {
             console.error(err)
             setUploadStatus('error')
+            setUploadError(err.message || 'No se pudo enviar el clip.')
             if (err.message?.includes('5 minutos')) setUploadCooldown(300)
         }
     }
@@ -210,6 +213,13 @@ function Clips() {
                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                 ></video>
                                             )}
+                                            {videoData?.type === 'external' && (
+                                                <div className="clip-external-preview">
+                                                    <Icon name="video" size={34} />
+                                                    <span>Clip alojado en Medal</span>
+                                                    <a href={videoData.src} target="_blank" rel="noopener noreferrer">Ver en Medal <Icon name="externalLink" size={15} /></a>
+                                                </div>
+                                            )}
                                             {!videoData && (
                                                 <div className="clip-placeholder">
                                                     <Icon name="video" size={48} />
@@ -279,6 +289,13 @@ function Clips() {
                                             {videoData?.type === 'video' && (
                                                 <video src={videoData.src} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }}></video>
                                             )}
+                                            {videoData?.type === 'external' && (
+                                                <div className="clip-external-preview">
+                                                    <Icon name="video" size={34} />
+                                                    <span>Clip alojado en Medal</span>
+                                                    <a href={videoData.src} target="_blank" rel="noopener noreferrer">Ver en Medal <Icon name="externalLink" size={15} /></a>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="clip-info">
                                             <h3>{clip.titulo}</h3>
@@ -340,7 +357,7 @@ function Clips() {
                                             placeholder="Cuenta un poco sobre qué pasó..."
                                         />
                                     </div>
-                                    {uploadStatus === 'error' && <p className="error-text">{uploadCooldown ? `Debes esperar ${Math.ceil(uploadCooldown / 60)} minutos para enviar otro clip.` : 'Ocurrió un error al subir el clip.'}</p>}
+                                    {uploadStatus === 'error' && <p className="error-text">{uploadCooldown ? `Debes esperar ${Math.ceil(uploadCooldown / 60)} minutos para enviar otro clip.` : uploadError}</p>}
                                     <button type="submit" className="btn-primary" disabled={uploadStatus === 'loading' || uploadCooldown > 0}>
                                         {uploadStatus === 'loading' ? 'Enviando...' : uploadCooldown ? `Espera ${Math.ceil(uploadCooldown / 60)} min` : 'Enviar Clip'}
                                     </button>

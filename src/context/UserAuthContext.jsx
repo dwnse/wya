@@ -10,82 +10,25 @@ export function UserAuthProvider({ children }) {
     useEffect(() => {
         checkUser()
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
+            (event, session) => {
                 if (session?.user) {
-                    try {
-                        const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
-                        if (projectRef && session.access_token) {
-                            const key = `sb-${projectRef}-auth-token`
-                            if (!localStorage.getItem(key)) {
-                                localStorage.setItem(key, JSON.stringify({
-                                    access_token: session.access_token,
-                                    refresh_token: session.refresh_token,
-                                    user: session.user,
-                                    expires_at: session.expires_at,
-                                    token_type: session.token_type
-                                }))
-                            }
-                        }
-                    } catch (e) { }
-
-                    await loadUserProfile(session.user.id)
-                } else {
-                    if (event === 'SIGNED_OUT') {
-                        setUser(null)
-                    }
+                    window.setTimeout(() => {
+                        loadUserProfile(session.user.id, session.access_token)
+                    }, 0)
+                } else if (event === 'SIGNED_OUT') {
+                    setUser(null)
                 }
                 setLoading(false)
             }
         )
-
         return () => subscription.unsubscribe()
     }, [])
 
     async function checkUser() {
         try {
-            const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
-            const key = `sb-${projectRef}-auth-token`
-            const sessionStr = localStorage.getItem(key)
-
-            let manualSessionValid = false
-
-            if (sessionStr) {
-                try {
-                    const session = JSON.parse(sessionStr)
-                    if (session.access_token) {
-                        console.log('[UserAuthContext] Token encontrado en storage manual. Validando...')
-                        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-                        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-                        const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
-                            headers: {
-                                'apikey': supabaseKey,
-                                'Authorization': `Bearer ${session.access_token}`
-                            }
-                        })
-
-                        if (response.ok) {
-                            const userData = await response.json()
-                            console.log('[UserAuthContext] Token válido. Usuario recuperado:', userData.id)
-                            await loadUserProfile(userData.id)
-                            manualSessionValid = true
-                        } else {
-                            console.warn('[UserAuthContext] Token inválido o expirado. Limpiando storage.')
-                            localStorage.removeItem(key)
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error parsing session from storage', e)
-                }
-            }
-
-            if (manualSessionValid) return
-            const { data: { user: authUser } } = await supabase.auth.getUser()
-            if (authUser) {
-                await loadUserProfile(authUser.id)
-            } else {
-                setUser(null)
-            }
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session?.user) await loadUserProfile(session.user.id)
+            else setUser(null)
         } catch (error) {
             console.error('Error checking user:', error)
             setUser(null)
@@ -93,64 +36,37 @@ export function UserAuthProvider({ children }) {
             setLoading(false)
         }
     }
-    async function getAuthHeaders() {
-        try {
-            const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
-            const key = `sb-${projectRef}-auth-token`
-            const sessionStr = localStorage.getItem(key)
 
-            if (sessionStr) {
-                const session = JSON.parse(sessionStr)
-                if (session.access_token) {
-                    return {
-                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${session.access_token}`,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                }
-            }
-        } catch (e) { }
-        const { data: { session } } = await supabase.auth.getSession()
-        const token = session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY
-
+    async function getAuthHeaders(accessToken) {
+        const token = accessToken || (await supabase.auth.getSession()).data.session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY
         return {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
             'Content-Type': 'application/json'
         }
     }
 
-    async function loadUserProfile(authUserId) {
+    async function loadUserProfile(authUserId, accessToken) {
         try {
             const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-            const headers = await getAuthHeaders()
-
-            const response = await fetch(
-                `${supabaseUrl}/rest/v1/usuarios?select=*,roles(nombre,color)&auth_user_id=eq.${authUserId}&estado=eq.activo&limit=1`,
-                { headers }
-            )
-
+            const headers = await getAuthHeaders(accessToken)
+            let response = await fetch(`${supabaseUrl}/rest/v1/usuarios?select=*,roles(nombre,color)&auth_user_id=eq.${authUserId}&estado=eq.activo&limit=1`, { headers })
+            if (response.status === 401) {
+                const { data: { session } } = await supabase.auth.refreshSession()
+                if (session?.access_token) response = await fetch(`${supabaseUrl}/rest/v1/usuarios?select=*,roles(nombre,color)&auth_user_id=eq.${authUserId}&estado=eq.activo&limit=1`, { headers: { ...headers, Authorization: `Bearer ${session.access_token}` } })
+            }
             if (!response.ok) throw new Error(`Error loading profile: ${response.status}`)
             const users = await response.json()
             const userData = users?.[0]
-
-            if (userData) {
-                if (userData.roles) {
-                    userData.rol = userData.roles.nombre
-                    userData.rol_color = userData.roles.color
-                }
+            if (userData?.roles) {
+                userData.rol = userData.roles.nombre
+                userData.rol_color = userData.roles.color
             }
-
             setUser(userData || null)
         } catch (error) {
             console.error('Error loading user profile:', error)
-            if (authUserId) {
-                setUser({ id: 'temp_' + authUserId, auth_user_id: authUserId, nombre: 'Usuario', email: '' })
-            } else {
-                setUser(null)
-            }
+            setUser({ id: 'temp_' + authUserId, auth_user_id: authUserId, nombre: 'Usuario', email: '' })
         }
     }
 
@@ -158,93 +74,19 @@ export function UserAuthProvider({ children }) {
         email = email.trim().toLowerCase()
         if (!email.endsWith('@gmail.com')) throw new Error('Debes registrarte con un correo Gmail')
         const nombre = email.split('@')[0].replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 50) || 'Usuario'
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-        console.log('[UserAuthContext] Starting registration...')
-
-        try {
-            const authResponse = await fetch(`${supabaseUrl}/auth/v1/signup`, {
-                method: 'POST',
-                headers: {
-                    'apikey': supabaseKey,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email,
-                    password,
-                    data: { nombre }
-                })
-            })
-
-            const authData = await authResponse.json()
-
-            if (!authResponse.ok) {
-                const message = authData.msg || authData.message || authData.error_description || 'Error al registrarse'
-                if (authResponse.status === 429) {
-                    const rateLimitError = new Error('Has realizado demasiados intentos. Espera unos segundos y vuelve a intentarlo.')
-                    rateLimitError.code = 'RATE_LIMITED'
-                    rateLimitError.retryAfter = 45
-                    throw rateLimitError
-                }
-                throw new Error(message)
+        const signupRequest = supabase.auth.signUp({ email, password, options: { data: { nombre } } })
+        const timeout = new Promise((_, reject) => window.setTimeout(() => reject(new Error('El registro tardó demasiado. Comprueba tu conexión e inténtalo de nuevo.')), 15000))
+        const { data, error } = await Promise.race([signupRequest, timeout])
+        if (error) {
+            if (error.status === 429) {
+                const rateLimitError = new Error('Has realizado demasiados intentos. Espera unos segundos.')
+                rateLimitError.code = 'RATE_LIMITED'
+                rateLimitError.retryAfter = 45
+                throw rateLimitError
             }
-            if (authData.user && !authData.access_token) {
-                return { user: authData.user, requiresConfirmation: true }
-            }
-
-            if (authData.user && authData.access_token) {
-                const projectRef = supabaseUrl.match(/\/\/([^.]+)\./)?.[1]
-                if (projectRef) {
-                    localStorage.setItem(`sb-${projectRef}-auth-token`, JSON.stringify({
-                        access_token: authData.access_token,
-                        refresh_token: authData.refresh_token,
-                        user: authData.user,
-                        expires_at: Math.floor(Date.now() / 1000) + (authData.expires_in || 3600),
-                        token_type: 'bearer'
-                    }))
-                }
-                try {
-                    const token = authData.access_token
-                    const headers = {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    }
-
-                    const existingReq = await fetch(
-                        `${supabaseUrl}/rest/v1/usuarios?auth_user_id=eq.${authData.user.id}&select=id`,
-                        { headers }
-                    )
-                    const existing = await existingReq.json()
-
-                    if (!existing?.length) {
-                        await fetch(
-                            `${supabaseUrl}/rest/v1/usuarios`,
-                            {
-                                method: 'POST',
-                                headers,
-                                body: JSON.stringify({
-                                    auth_user_id: authData.user.id,
-                                    nombre: nombre.trim(),
-                                    email: email
-                                })
-                            }
-                        )
-                    }
-                } catch (e) {
-                    console.error('Error creating profile fallback:', e)
-                }
-                await loadUserProfile(authData.user.id)
-            }
-
-            return { user: authData.user, requiresConfirmation: false }
-        } catch (e) {
-            console.error('[UserAuthContext] Registration error:', e)
-            throw e
+            throw new Error(error.message || 'Error al registrarse')
         }
+        return { user: data.user, requiresConfirmation: Boolean(data.user && !data.session) }
     }
 
     async function login(email, password) {
@@ -279,6 +121,10 @@ export function UserAuthProvider({ children }) {
 
             console.log('[UserAuthContext] REST Login éxito')
             if (authData.access_token) {
+                await supabase.auth.setSession({
+                    access_token: authData.access_token,
+                    refresh_token: authData.refresh_token
+                })
                 try {
                     const projectRef = import.meta.env.VITE_SUPABASE_URL.match(/\/\/([^.]+)\./)?.[1]
                     if (projectRef) {

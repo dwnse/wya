@@ -10,6 +10,47 @@
     margin-bottom: 24px;
     flex-wrap: wrap;
 }
+    .crud-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: var(--color-primary);
+    }
+    .community-list {
+        display: grid;
+        gap: 12px;
+    }
+    .community-list-item {
+        background: rgba(17, 21, 21, .8);
+    }
+    .community-list.activity-list {
+        padding-top: 0;
+    }
+    .community-list .activity-line {
+        min-height: 70px;
+        align-items: flex-start;
+        padding: 16px 18px;
+        border: 1px solid var(--color-border);
+    }
+    .challenge-list .crud-card small {
+        display: block;
+        margin-top: 10px;
+        color: var(--color-text-muted);
+    }
+    .community-modal {
+        width: min(620px, calc(100% - 28px));
+    }
+    .community-discord-form {
+        max-width: 680px;
+    }
+    .community-votes-table {
+        overflow-x: auto;
+    }
+    .community-votes-table .crud-table {
+        min-width: 620px;
+    }
+    .vote-positive { color: #65c18c !important; font-weight: 700; }
+    .vote-negative { color: #f87171 !important; font-weight: 700; }
 
 .crud-header h1 {
     font-size: var(--font-size-2xl);
@@ -464,6 +505,10 @@
         flex-direction: column;
         align-items: stretch;
     }
+        .crud-header-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
 
     .crud-header>div:first-child {
         margin-bottom: 8px;

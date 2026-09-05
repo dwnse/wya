@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
-  --color-bg: #0a0a0a;
-  --color-bg-secondary: #111111;
-  --color-bg-tertiary: #1a1a1a;
+  --color-bg: #090b0b;
+  --color-bg-secondary: #111515;
+  --color-bg-tertiary: #1a2020;
 
   --color-text: #f5f5f5;
-  --color-text-secondary: #b0b0b0;
-  --color-text-muted: #666666;
+  --color-text-secondary: #b7c0bd;
+  --color-text-muted: #7c8884;
 
-  --color-primary: #dc2626;
-  --color-primary-dark: #991b1b;
-  --color-primary-light: #ef4444;
-  --color-primary-glow: rgba(220, 38, 38, 0.4);
+  --color-primary: #f05a47;
+  --color-primary-dark: #a8332d;
+  --color-primary-light: #ff806d;
+  --color-primary-glow: rgba(240, 90, 71, 0.32);
 
   --color-accent: #dc2626;
   --color-accent-gold: #f59e0b;
@@ -20,8 +20,17 @@
   --color-discord: #5865F2;
 
   --color-card: rgba(17, 17, 17, 0.95);
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-hover: rgba(220, 38, 38, 0.5);
+  --color-border: rgba(226, 239, 235, 0.12);
+  --color-border-hover: rgba(240, 90, 71, 0.58);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
 
   --color-danger-5: #dc2626;
   --color-danger-4: #ea580c;
@@ -40,9 +49,9 @@
   --transition-slow: 0.4s ease;
 
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
   --font-family: 'DM Sans', sans-serif;
@@ -244,4 +253,87 @@ button {
   text-align: center;
   padding: 80px 20px;
   color: var(--color-text-muted);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 3px;
+}
+
+/* Shared visual language for public and admin surfaces. */
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  border-radius: var(--radius-md);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.profile-panel,
+.public-event,
+.member-request-panel,
+.tier-group,
+.crud-card,
+.stat-card,
+.crud-table-wrapper {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .16);
+}
+
+.btn-primary,
+.btn-secondary,
+.discord-cta,
+.login-button,
+.auth-submit {
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.btn-primary:hover,
+.discord-cta:hover,
+.login-button:hover,
+.auth-submit:hover {
+  box-shadow: 0 8px 22px rgba(240, 90, 71, .18);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.discord-cta:disabled,
+.login-button:disabled,
+.auth-submit:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 720px) {
+  .page-header,
+  .dashboard-header {
+    margin-bottom: 28px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+
+  .admin-content {
+    overflow-x: hidden;
+  }
 }

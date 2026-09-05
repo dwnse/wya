@@ -286,3 +286,18 @@
     background: #f59e0b;
     color: white;
 }
+
+.admin-external-preview {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--color-text-secondary);
+    background: radial-gradient(circle at 50% 20%, rgba(240, 90, 71, .16), transparent 55%), #101414;
+}
+
+.admin-external-preview .icon { color: var(--color-primary); }
+.admin-external-preview span { color: var(--color-text-muted); font-size: .75rem; }

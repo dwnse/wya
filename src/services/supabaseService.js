@@ -177,6 +177,24 @@ export async function votarTier(miembroId, usuarioId, voto) {
   if (error) throw error
 }
 
+export async function obtenerResumenVotosTier() {
+  const { data: votes, error: votesError } = await supabase
+    .from('votos_tier')
+    .select('miembro_id,voto')
+  if (votesError) throw votesError
+  const members = await obtenerMiembrosTier()
+  const byMember = (votes || []).reduce((result, vote) => {
+    if (!result[vote.miembro_id]) result[vote.miembro_id] = { positivos: 0, negativos: 0 }
+    if (vote.voto === 1) result[vote.miembro_id].positivos += 1
+    if (vote.voto === -1) result[vote.miembro_id].negativos += 1
+    return result
+  }, {})
+  return members.map(member => ({
+    ...member,
+    ...(byMember[member.miembro_id] || { positivos: 0, negativos: 0 })
+  })).sort((a, b) => b.positivos - a.positivos || b.negativos - a.negativos)
+}
+
 export async function notificarDiscord({ title, description, url, color }) {
   const { data, error } = await supabase.functions.invoke('discord-announcement', {
     body: { title, description, url, color, siteUrl: 'https://dwnse.github.io/wya/' }
@@ -194,12 +212,19 @@ export async function obtenerCategoriasClips() {
 }
 
 export async function crearClip(clip) {
-  const { data, error } = await supabase.rpc('crear_clip_usuario', {
-    p_titulo: clip.titulo,
-    p_url: clip.youtube_url,
-    p_descripcion: clip.descripcion || null
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.access_token) throw new Error('Tu sesión ha caducado. Inicia sesión de nuevo.')
+
+  const request = supabase.rpc('crear_clip_usuario', {
+    p_titulo: clip.titulo.trim(),
+    p_url: clip.youtube_url.trim(),
+    p_descripcion: clip.descripcion?.trim() || null
   })
-  if (error) throw error
+  const timeout = new Promise((_, reject) => {
+    window.setTimeout(() => reject(new Error('La subida tardó demasiado. Comprueba tu sesión e inténtalo de nuevo.')), 15000)
+  })
+  const { data, error } = await Promise.race([request, timeout])
+  if (error) throw new Error(error.message || 'No se pudo enviar el clip')
   return data
 }
 

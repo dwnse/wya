@@ -157,6 +157,13 @@ function AdminClips() {
                                     {videoData?.type === 'video' && (
                                         <video src={videoData.src} controls></video>
                                     )}
+                                    {videoData?.type === 'external' && (
+                                        <div className="admin-external-preview">
+                                            <Icon name="video" size={30} />
+                                            <span>Clip alojado en Medal</span>
+                                            <a href={videoData.src} target="_blank" rel="noopener noreferrer">Ver en Medal <Icon name="externalLink" size={14} /></a>
+                                        </div>
+                                    )}
                                     {!videoData && (
                                         <div className="no-preview">
                                             <p>Video no previsualizable</p>

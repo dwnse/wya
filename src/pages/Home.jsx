@@ -36,9 +36,9 @@ function Home() {
             <main className="home-main">
                 <section className="hero-stage" aria-labelledby="home-title">
                     <div className="hero-copy">
-                        <p className="eyebrow"><span /> Comunidad competitiva de Minecraft</p>
-                        <h1 id="home-title">RYO<span>.</span></h1>
-                        <p className="hero-lede">Donde cada bloque, duelo y victoria suma.</p>
+                        <p className="eyebrow"><span /> Comunidad competitiva</p>
+                        <h1 id="home-title">RYO ON TOP<span>.</span></h1>
+                        <p className="hero-lede">Luchando por la Top.</p>
                     </div>
 
                     <div className="skull-orbit" aria-label="Explora la plataforma">

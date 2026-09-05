@@ -15,7 +15,8 @@
     left: 0;
     bottom: 0;
     z-index: 100;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, width 0.3s ease;
+    box-shadow: 12px 0 35px rgba(0, 0, 0, .2);
 }
 
 .sidebar-brand {
@@ -137,7 +138,7 @@
 
 .menu-group {
     display: grid;
-    gap: 4px;
+    gap: 5px;
 }
 
 .menu-group + .menu-group {
@@ -145,12 +146,40 @@
 }
 
 .menu-group-label {
-    padding: 0 18px 7px;
     color: var(--color-text-muted);
     font-size: .65rem;
     font-weight: 700;
     letter-spacing: .12em;
     text-transform: uppercase;
+}
+
+.menu-group-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px 7px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+
+.menu-group-toggle .icon {
+    transform: rotate(90deg);
+    transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.menu-group.collapsed .menu-group-toggle .icon {
+    transform: rotate(0);
+}
+
+.menu-group-toggle:hover,
+.menu-group-toggle:focus-visible {
+    color: var(--color-text);
+}
+
+.menu-group-items {
+    display: grid;
+    gap: 4px;
 }
 
 .sidebar-menu::-webkit-scrollbar {
@@ -179,6 +208,7 @@
     position: relative;
     text-decoration: none;
     font-family: var(--font-family);
+    min-height: 46px;
     }
 
 .menu-item::before {
@@ -324,7 +354,10 @@
 
 .admin-content {
     flex: 1;
-    padding: 32px 40px;
+    padding: 36px clamp(20px, 4vw, 48px);
+    max-width: 1540px;
+    width: 100%;
+    margin: 0 auto;
 }
 
 .sidebar-overlay {
@@ -386,6 +419,15 @@
     }
 
     .menu-group-label {
+        display: none;
+    }
+
+    .menu-group-toggle {
+        justify-content: center;
+        padding: 0 0 7px;
+    }
+
+    .menu-group-toggle .icon {
         display: none;
     }
 
